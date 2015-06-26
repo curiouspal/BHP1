@@ -127,7 +127,7 @@ s8$Q20 <- factor(s8$Q20,
                  labels = c("Yes, I currently have sufficient child care", "No, I currently have no child care, but need it", "No, I currently have some child care, but need more", "N/A, I currently do not need child care", NA))
 
 ## In order to check if we have included all the observations from the Excel file in our analysis, lets try to see if there are observations in the Excel file that do not exist in the SPSS file for S8.
-s8TCodesFromExcel <- read.csv("/Data/s8-listOfTCodes-fromExcel.csv")
+s8TCodesFromExcel <- read.csv("Data/s8-listOfTCodes-fromExcel.csv")
 summary(s8TCodesFromExcel)
 
 s8_merged <- merge(s8, s8TCodesFromExcel, by = intersect(names(s8), names(s8TCodesFromExcel)), all=TRUE)
