@@ -198,3 +198,15 @@ for(i in 1:length(all$Surveyed)) if(is.na(all$Surveyed[i])) all$Surveyed[i]<-"No
 all$Surveyed<-as.factor(all$Surveyed)
 ph<-all[all$PH_or_S8=="PH", ]
 s8<-all[all$PH_or_S8=="S8", ]
+
+## There are 199 variables in this new data frame "all". I later created a few more variables during analysis which are in the .RData file: 
+# "X"             
+# "Movedout"      
+# "Move.In1"      
+# "Move.Out1"     
+# "Move.In2"      
+# "Move.Out2"     
+# "days"          
+# "months.in.BHP" 
+# "Q2a"           
+# "Q4a" 
