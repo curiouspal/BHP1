@@ -208,5 +208,15 @@ s8<-all[all$PH_or_S8=="S8", ]
 # "Move.Out2"     
 # "days"          
 # "months.in.BHP" 
-# "Q2a"           
-# "Q4a" 
+# "Q2a" - This is just a recode of Q2.          
+# "Q4a" - This is just a recode of Q4 with anyone who paid rent late at least once are coded as "Yes".
+
+for(i in 1:length(all$Move.Out)) if(all$Move.Out[i]=="99-12-30") all$Move.Out[i]<-NA
+#for(i in 1:length(all$Move.In)) if(all$Move.In[i]=="99-12-30") all$Move.In[i]<-NA
+
+all$Movedout<-NA
+all$Move.Out<-as.character(all$Move.Out)
+for(i in 1:length(all$Move.Out)) 
+  if(is.na(all$Move.Out[i])) all$Movedout[i]<-"No" else all$Movedout[i]<-"Yes"
+all$Movedout<-as.factor(all$Movedout)
+summary(all$Movedout)
