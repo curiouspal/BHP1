@@ -1,3 +1,82 @@
+library("ggplot2")
+library("pander")
+panderOptions('table.split.table', Inf)
+panderOptions('table.split.cells', Inf)
+panderOptions('table.alignment.rownames', 'left')
+panderOptions('table.style', 'multiline')
+panderOptions('table.emphasize.rownames', FALSE)
+
+
+########################################################################################################
+
+summary(all)
+
+summary(all$Mailing.Zip)
+
+ggplot(all, aes(Age, fill=PH_or_S8)) + geom_bar(position='dodge', binwidth=2) +
+  theme(
+    plot.title = element_text(size=20, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=18, angle = 0, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=18), 
+    axis.title.x = element_text(color="#000033", size=18), 
+    axis.title.y = element_text(color="#000033", size=18, vjust=2),
+    legend.title=element_blank(),
+    legend.text = element_text(colour="#000033", size = 18)
+  ) 
+x <- subset(all, Total.Annual.Income>0, select=c(Total.Annual.Income, PH_or_S8))
+ggplot(x, aes(Total.Annual.Income, fill=PH_or_S8)) + geom_bar(binwidth=2000, position='dodge') +
+  theme(
+    plot.title = element_text(size=20, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=18, angle = 0, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=18), 
+    axis.title.x = element_text(color="#000033", size=18), 
+    axis.title.y = element_text(color="#000033", size=18, vjust=2),
+    legend.title=element_blank(),
+    legend.text = element_text(colour="#000033", size = 18)
+  ) 
+
+all$Household.Member
+
+summary(all$Status)
+summary(all$Household.Member)
+
+
+#######################################################################
+# Crosstabs of actual counts: Status (Current, Notice, Past) vs. Future housing assistance expectation Q2?
+pander(xtabs(formula = ~Q2+Status, data=all))
+
+# Crosstabs of percentage frequencies: Status (Current, Notice, Past) vs. Future housing assistance expectation Q2?
+# Each row of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~Q2+Status, data=all), 1)*100, 0))
+
+# Crosstabs of percentage frequencies: Status (Current, Notice, Past) vs. Future housing assistance expectation Q2?
+# Each column of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~Q2+Status, data=all), 2)*100, 0))
+
+#######################################################################
+ggplot(ph, aes(Age, fill=Surveyed)) + geom_bar(position='dodge', binwidth=2) +
+  theme(
+    plot.title = element_text(size=20, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=18, angle = 0, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=18), 
+    axis.title.x = element_text(color="#000033", size=18), 
+    axis.title.y = element_text(color="#000033", size=18, vjust=2),
+    legend.title=element_blank(),
+    legend.text = element_text(colour="#000033", size = 18)
+  ) 
+x <- subset(ph, Total.Annual.Income>0, select=c(Total.Annual.Income, Surveyed))
+ggplot(x, aes(Total.Annual.Income, fill=Surveyed)) + geom_bar(binwidth=2000, position='dodge') +
+  theme(
+    plot.title = element_text(size=20, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=18, angle = 0, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=18), 
+    axis.title.x = element_text(color="#000033", size=18), 
+    axis.title.y = element_text(color="#000033", size=18, vjust=2),
+    legend.title=element_blank(),
+    legend.text = element_text(colour="#000033", size = 18)
+  ) 
+##############################################################################
+
 Meanwhile, it would be interesting qs to explore possible relationships between self assessment of health status (poor-excellent) 
 and health insurance coverage  as well as  some barrier questions that reference health.  Similarly, possible relationships between 
 not having (enough) child care and employment status.  And between expectation of future time in BHP housing and level of education, 
