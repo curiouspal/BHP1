@@ -1,4 +1,4 @@
-setwd("/media/anirban/a84ef5e0-59cf-454d-aeae-e112c9915900/home/anirban/Documents/BoulderHousingPartnersData/BHP2-clone/BHP1")
+
 library("foreign")
 
 #### LOAD DATA ####

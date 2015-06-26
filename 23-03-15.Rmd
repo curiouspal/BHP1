@@ -1,0 +1,613 @@
+---
+title: "23-03-15"
+author: "Anirban Pal"
+date: "03/23/2015"
+output: html_document
+---
+```{r, echo=FALSE}
+setwd("/home/anirban/Documents/BoulderHousingPartnersData")
+load("all.RData")
+library("foreign")
+library("ggplot2")
+library("pander")
+library("manipulate")
+library("plyr")
+library("R2HTML")
+library("MASS")
+        
+panderOptions('table.split.table', Inf)
+panderOptions('table.split.cells', Inf)
+panderOptions('table.alignment.rownames', 'left')
+panderOptions('table.style', 'multiline')
+panderOptions('table.emphasize.rownames', FALSE)
+
+
+all$Q2 <- ordered(all$Q2,
+                levels = c("For more than 5 years", "For the next 3 – 5 years", "For the next 1 – 2 years", "For the next 7 – 12 months", "For the next 6 months"),
+                labels = c("For more than 5 years", "For the next 3 – 5 years", "For the next 1 – 2 years", "For the next 7 – 12 months", "For the next 6 months"))
+all$future <- as.numeric(all$Q2)
+all$LatePayment <- 6 - as.numeric(all$Q4)
+all$selfassessHousing <- as.numeric(all$Q36_1)
+all$SSinHousing <- all$LatePayment + all$selfassessHousing + all$future
+
+ph <- subset(all, PH_or_S8=="PH")
+s8 <- subset(all, PH_or_S8=="S8")
+```
+
+##**Testing SSinHousing as an index to measure SS in Housing**
+
+```{r}
+all$x <- runif(length(all$TCode)) - 0.5
+all$SSinHousing <- all$SSinHousing + all$x
+all$incomeperhead <- all$Total.Annual.Income/all$Family.Members 
+ph <- subset(all, PH_or_S8=="PH")
+s8 <- subset(all, PH_or_S8=="S8")
+summary(all$SSinHousing)
+ggplot(all, aes(SSinHousing)) + geom_bar()
+
+summary(lm(SSinHousing ~ incomeperhead, data=all))
+
+summary(lm(SSinHousing ~ as.numeric(Member.Sex), data=all))
+
+summary(lm(SSinHousing ~ Bedrooms, data=all))
+all1 <- subset(all, Single.Parent.HH!="Unknown")
+summary(lm(SSinHousing ~ Single.Parent.HH, data=all1))
+
+summary(lm(SSinHousing ~ Q5, data=all1))
+
+all$housingafford <- all$Tenant.Rent*12/(all$Total.Annual.Income+1)
+summary(lm(SSinHousing ~ housingafford, data=all))
+summary(polr(as.ordered(SSinHousing) ~ housingafford, data=all, Hess=TRUE))
+
+summary(lm(SSinHousing ~ Q25_1, data=all))
+summary(lm(SSinHousing ~ Q25_1, data=ph))
+summary(lm(SSinHousing ~ Q25_1, data=s8))
+
+summary(lm(SSinHousing ~ Q25_2, data=all))
+summary(lm(SSinHousing ~ Q25_2, data=ph))
+summary(lm(SSinHousing ~ Q25_2, data=s8))
+
+fit <- lm(SSinHousing ~ incomeperhead, data=all)
+par(mfrow=c(2,2))
+plot(fit)
+
+
+
+
+all$x <- all$SSinHousing - 4.555e-05*all$incomeperhead - 9.655
+ggplot(all, aes(x)) + geom_bar()
+
+summary(glm(SSinHousing ~ incomeperhead, data=all, family=gaussian))
+```
+
+
+
+##**Checking crosstabs visually**
+
+####**Employment Status**
+
+
+```{r, echo=FALSE, fig.height=8}
+a <- function(q1, q2) {
+  x <- as.data.frame(prop.table(xtabs(formula = ~ q1 + q2, data=subset(all, PH_or_S8=="S8")), 2))
+  x$phs8 <- "S8"
+  y <- as.data.frame(prop.table(xtabs(formula = ~ q1 + q2, data=subset(all, PH_or_S8=="PH")), 2))
+  y$phs8 <- "PH"
+  xy <- rbind(x, y)
+  xy$phs8 <- as.factor(xy$phs8)
+  ggplot(xy, aes(q2, Freq)) + geom_bar(aes(fill=q1), stat="identity", position="stack") + facet_wrap(~phs8) 
+ 
+}
+
+a(all$Q4a, all$Q5)
+
+x <- as.data.frame(prop.table(xtabs(formula = ~ Q4a + Q5, data=s8), 2))
+x$phs8 <- "S8"
+y <- as.data.frame(prop.table(xtabs(formula = ~ Q4a + Q5, data=ph), 2))
+y$phs8 <- "PH"
+xy <- rbind(x, y)
+xy$phs8 <- as.factor(xy$phs8)
+ggplot(xy, aes(Q5, Freq)) + geom_bar(aes(fill=Q4a), stat="identity", position="stack") + facet_wrap(~phs8) + 
+   theme(
+    strip.text.x = element_text(size = 15, colour = "brown", angle = 0),
+    plot.title = element_text(size=15, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=7, angle = 75, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=9), 
+    axis.title.x = element_text(color="#000033", size=9), 
+    axis.title.y = element_text(color="#000033", size=9, vjust=2),
+    legend.text = element_text(colour="#000033", size = 8)
+    ) 
+
+rm(x, y, xy)
+x <- as.data.frame(prop.table(xtabs(formula = ~ Q2a + Q5, data=s8), 2))
+x$phs8 <- "S8"
+y <- as.data.frame(prop.table(xtabs(formula = ~ Q2a + Q5, data=ph), 2))
+y$phs8 <- "PH"
+xy <- rbind(x, y)
+xy$phs8 <- as.factor(xy$phs8)
+ggplot(xy, aes(Q5, Freq)) + geom_bar(aes(fill=Q2a), stat="identity", position="stack") + facet_wrap(~phs8) + 
+   theme(
+    strip.text.x = element_text(size = 15, colour = "brown", angle = 0),
+    plot.title = element_text(size=15, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=7, angle = 75, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=9), 
+    axis.title.x = element_text(color="#000033", size=9), 
+    axis.title.y = element_text(color="#000033", size=9, vjust=2),
+    legend.text = element_text(colour="#000033", size = 8)
+    ) 
+
+rm(x, y, xy)
+x <- as.data.frame(prop.table(xtabs(formula = ~ Q36_1 + Q5, data=s8), 2))
+x$phs8 <- "S8"
+y <- as.data.frame(prop.table(xtabs(formula = ~ Q36_1 + Q5, data=ph), 2))
+y$phs8 <- "PH"
+xy <- rbind(x, y)
+xy$phs8 <- as.factor(xy$phs8)
+ggplot(xy, aes(Q5, Freq)) + geom_bar(aes(fill=Q36_1), stat="identity", position="stack") + facet_wrap(~phs8) +
+   theme(
+    strip.text.x = element_text(size = 15, colour = "brown", angle = 0),
+    plot.title = element_text(size=15, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=7, angle = 75, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=9), 
+    axis.title.x = element_text(color="#000033", size=9), 
+    axis.title.y = element_text(color="#000033", size=9, vjust=2),
+    legend.text = element_text(colour="#000033", size = 8)
+    ) 
+```
+
+
+####**Need/Want more hours**
+
+
+```{r, echo=FALSE}
+rm(x, y, xy)
+x <- as.data.frame(prop.table(xtabs(formula = ~ Q4a + Q6, data=s8), 2))
+x$phs8 <- "S8"
+y <- as.data.frame(prop.table(xtabs(formula = ~ Q4a + Q6, data=ph), 2))
+y$phs8 <- "PH"
+xy <- rbind(x, y)
+xy$phs8 <- as.factor(xy$phs8)
+ggplot(xy, aes(Q6, Freq)) + geom_bar(aes(fill=Q4a), stat="identity", position="stack") + facet_wrap(~phs8) +
+   theme(
+    strip.text.x = element_text(size = 15, colour = "brown", angle = 0),
+    plot.title = element_text(size=15, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=9, angle = 45, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=9), 
+    axis.title.x = element_text(color="#000033", size=9), 
+    axis.title.y = element_text(color="#000033", size=9, vjust=2),
+    legend.text = element_text(colour="#000033", size = 8)
+    ) 
+
+rm(x, y, xy)
+x <- as.data.frame(prop.table(xtabs(formula = ~ Q2a + Q6, data=s8), 2))
+x$phs8 <- "S8"
+y <- as.data.frame(prop.table(xtabs(formula = ~ Q2a + Q6, data=ph), 2))
+y$phs8 <- "PH"
+xy <- rbind(x, y)
+xy$phs8 <- as.factor(xy$phs8)
+ggplot(xy, aes(Q6, Freq)) + geom_bar(aes(fill=Q2a), stat="identity", position="stack") + facet_wrap(~phs8) +
+   theme(
+    strip.text.x = element_text(size = 15, colour = "brown", angle = 0),
+    plot.title = element_text(size=15, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=9, angle = 45, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=9), 
+    axis.title.x = element_text(color="#000033", size=9), 
+    axis.title.y = element_text(color="#000033", size=9, vjust=2),
+    legend.text = element_text(colour="#000033", size = 8)
+    ) 
+
+rm(x, y, xy)
+x <- as.data.frame(prop.table(xtabs(formula = ~ Q36_1 + Q6, data=s8), 2))
+x$phs8 <- "S8"
+y <- as.data.frame(prop.table(xtabs(formula = ~ Q36_1 + Q6, data=ph), 2))
+y$phs8 <- "PH"
+xy <- rbind(x, y)
+xy$phs8 <- as.factor(xy$phs8)
+ggplot(xy, aes(Q6, Freq)) + geom_bar(aes(fill=Q36_1), stat="identity", position="stack") + facet_wrap(~phs8) +
+   theme(
+    strip.text.x = element_text(size = 15, colour = "brown", angle = 0),
+    plot.title = element_text(size=15, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=9, angle = 45, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=9), 
+    axis.title.x = element_text(color="#000033", size=9), 
+    axis.title.y = element_text(color="#000033", size=9, vjust=2),
+    legend.text = element_text(colour="#000033", size = 8)
+    ) 
+```
+
+
+####**Single parent**
+
+
+```{r, echo=FALSE}
+rm(x, y, xy)
+x <- as.data.frame(prop.table(xtabs(formula = ~ Q4a + Single.Parent.HH, data=s8), 2))
+x$phs8 <- "S8"
+y <- as.data.frame(prop.table(xtabs(formula = ~ Q4a + Single.Parent.HH, data=ph), 2))
+y$phs8 <- "PH"
+xy <- rbind(x, y)
+xy <- subset(xy, Single.Parent.HH!="Unknown")
+xy$phs8 <- as.factor(xy$phs8)
+ggplot(xy, aes(Single.Parent.HH, Freq)) + geom_bar(aes(fill=Q4a), stat="identity", position="stack") + facet_wrap(~phs8) +
+   theme(
+    strip.text.x = element_text(size = 15, colour = "brown", angle = 0),
+    plot.title = element_text(size=15, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=9, angle = 0, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=9), 
+    axis.title.x = element_text(color="#000033", size=9), 
+    axis.title.y = element_text(color="#000033", size=9, vjust=2),
+    legend.text = element_text(colour="#000033", size = 8)
+    ) 
+
+rm(x, y, xy)
+x <- as.data.frame(prop.table(xtabs(formula = ~ Q2a + Single.Parent.HH, data=s8), 2))
+x$phs8 <- "S8"
+y <- as.data.frame(prop.table(xtabs(formula = ~ Q2a + Single.Parent.HH, data=ph), 2))
+y$phs8 <- "PH"
+xy <- rbind(x, y)
+xy <- subset(xy, Single.Parent.HH!="Unknown")
+xy$phs8 <- as.factor(xy$phs8)
+ggplot(xy, aes(Single.Parent.HH, Freq)) + geom_bar(aes(fill=Q2a), stat="identity", position="stack") + facet_wrap(~phs8) +
+   theme(
+    strip.text.x = element_text(size = 15, colour = "brown", angle = 0),
+    plot.title = element_text(size=15, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=9, angle = 0, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=9), 
+    axis.title.x = element_text(color="#000033", size=9), 
+    axis.title.y = element_text(color="#000033", size=9, vjust=2),
+    legend.text = element_text(colour="#000033", size = 8)
+    ) 
+
+rm(x, y, xy)
+x <- as.data.frame(prop.table(xtabs(formula = ~ Q36_1 + Single.Parent.HH, data=s8), 2))
+x$phs8 <- "S8"
+y <- as.data.frame(prop.table(xtabs(formula = ~ Q36_1 + Single.Parent.HH, data=ph), 2))
+y$phs8 <- "PH"
+xy <- rbind(x, y)
+xy <- subset(xy, Single.Parent.HH!="Unknown")
+xy$phs8 <- as.factor(xy$phs8)
+xy$Q36_1<-as.ordered(xy$Q36_1)
+ggplot(xy, aes(Single.Parent.HH, Freq)) + geom_bar(aes(fill=Q36_1), stat="identity", position="stack") + facet_wrap(~phs8) +
+   theme(
+    strip.text.x = element_text(size = 15, colour = "brown", angle = 0),
+    plot.title = element_text(size=15, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=9, angle = 0, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=9), 
+    axis.title.x = element_text(color="#000033", size=9), 
+    axis.title.y = element_text(color="#000033", size=9, vjust=2),
+    legend.text = element_text(colour="#000033", size = 8)
+    ) 
+
+```
+
+
+####**Gender of household head**
+
+
+```{r, echo=FALSE}
+rm(x, y, xy)
+x <- as.data.frame(prop.table(xtabs(formula = ~ Q4a + Member.Sex, data=s8), 2))
+x$phs8 <- "S8"
+y <- as.data.frame(prop.table(xtabs(formula = ~ Q4a + Member.Sex, data=ph), 2))
+y$phs8 <- "PH"
+xy <- rbind(x, y)
+xy$phs8 <- as.factor(xy$phs8)
+ggplot(xy, aes(Member.Sex, Freq)) + geom_bar(aes(fill=Q4a), stat="identity", position="stack") + facet_wrap(~phs8) +
+   theme(
+    strip.text.x = element_text(size = 15, colour = "brown", angle = 0),
+    plot.title = element_text(size=15, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=9, angle = 0, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=9), 
+    axis.title.x = element_text(color="#000033", size=9), 
+    axis.title.y = element_text(color="#000033", size=9, vjust=2),
+    legend.text = element_text(colour="#000033", size = 8)
+    ) 
+
+rm(x, y, xy)
+x <- as.data.frame(prop.table(xtabs(formula = ~ Q2a + Member.Sex, data=s8), 2))
+x$phs8 <- "S8"
+y <- as.data.frame(prop.table(xtabs(formula = ~ Q2a + Member.Sex, data=ph), 2))
+y$phs8 <- "PH"
+xy <- rbind(x, y)
+xy$phs8 <- as.factor(xy$phs8)
+ggplot(xy, aes(Member.Sex, Freq)) + geom_bar(aes(fill=Q2a), stat="identity", position="stack") + facet_wrap(~phs8) +
+   theme(
+    strip.text.x = element_text(size = 15, colour = "brown", angle = 0),
+    plot.title = element_text(size=15, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=9, angle = 0, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=9), 
+    axis.title.x = element_text(color="#000033", size=9), 
+    axis.title.y = element_text(color="#000033", size=9, vjust=2),
+    legend.text = element_text(colour="#000033", size = 8)
+    ) 
+
+rm(x, y, xy)
+x <- as.data.frame(prop.table(xtabs(formula = ~ Q36_1 + Member.Sex, data=s8), 2))
+x$phs8 <- "S8"
+y <- as.data.frame(prop.table(xtabs(formula = ~ Q36_1 + Member.Sex, data=ph), 2))
+y$phs8 <- "PH"
+xy <- rbind(x, y)
+xy$phs8 <- as.factor(xy$phs8)
+ggplot(xy, aes(Member.Sex, Freq)) + geom_bar(aes(fill=Q36_1), stat="identity", position="stack") + facet_wrap(~phs8) +
+   theme(
+    strip.text.x = element_text(size = 15, colour = "brown", angle = 0),
+    plot.title = element_text(size=15, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=9, angle = 0, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=9), 
+    axis.title.x = element_text(color="#000033", size=9), 
+    axis.title.y = element_text(color="#000033", size=9, vjust=2),
+    legend.text = element_text(colour="#000033", size = 8)
+    ) 
+```
+
+
+####**Medical problem and not go to see a doctor**
+
+
+```{r, echo=FALSE}
+rm(x, y, xy)
+x <- as.data.frame(prop.table(xtabs(formula = ~ Q4a + Q31, data=s8), 2))
+x$phs8 <- "S8"
+y <- as.data.frame(prop.table(xtabs(formula = ~ Q4a + Q31, data=ph), 2))
+y$phs8 <- "PH"
+xy <- rbind(x, y)
+xy$phs8 <- as.factor(xy$phs8)
+ggplot(xy, aes(Q31, Freq)) + geom_bar(aes(fill=Q4a), stat="identity", position="stack") + facet_wrap(~phs8) +
+   theme(
+    strip.text.x = element_text(size = 15, colour = "brown", angle = 0),
+    plot.title = element_text(size=15, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=9, angle = 0, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=9), 
+    axis.title.x = element_text(color="#000033", size=9), 
+    axis.title.y = element_text(color="#000033", size=9, vjust=2),
+    legend.text = element_text(colour="#000033", size = 8)
+    ) 
+
+rm(x, y, xy)
+x <- as.data.frame(prop.table(xtabs(formula = ~ Q2a + Q31, data=s8), 2))
+x$phs8 <- "S8"
+y <- as.data.frame(prop.table(xtabs(formula = ~ Q2a + Q31, data=ph), 2))
+y$phs8 <- "PH"
+xy <- rbind(x, y)
+xy$phs8 <- as.factor(xy$phs8)
+ggplot(xy, aes(Q31, Freq)) + geom_bar(aes(fill=Q2a), stat="identity", position="stack") + facet_wrap(~phs8) +
+   theme(
+    strip.text.x = element_text(size = 15, colour = "brown", angle = 0),
+    plot.title = element_text(size=15, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=9, angle = 0, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=9), 
+    axis.title.x = element_text(color="#000033", size=9), 
+    axis.title.y = element_text(color="#000033", size=9, vjust=2),
+    legend.text = element_text(colour="#000033", size = 8)
+    ) 
+
+rm(x, y, xy)
+x <- as.data.frame(prop.table(xtabs(formula = ~ Q36_1 + Q31, data=s8), 2))
+x$phs8 <- "S8"
+y <- as.data.frame(prop.table(xtabs(formula = ~ Q36_1 + Q31, data=ph), 2))
+y$phs8 <- "PH"
+xy <- rbind(x, y)
+xy$phs8 <- as.factor(xy$phs8)
+ggplot(xy, aes(Q31, Freq)) + geom_bar(aes(fill=Q36_1), stat="identity", position="stack") + facet_wrap(~phs8) +
+   theme(
+    strip.text.x = element_text(size = 15, colour = "brown", angle = 0),
+    plot.title = element_text(size=15, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=9, angle = 0, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=9), 
+    axis.title.x = element_text(color="#000033", size=9), 
+    axis.title.y = element_text(color="#000033", size=9, vjust=2),
+    legend.text = element_text(colour="#000033", size = 8)
+    ) 
+```
+
+####**Free or reduced lunch**
+
+
+```{r, echo=FALSE}
+rm(x, y, xy)
+x <- as.data.frame(prop.table(xtabs(formula = ~ Q4a + Q25_5, data=s8), 2))
+x$phs8 <- "S8"
+y <- as.data.frame(prop.table(xtabs(formula = ~ Q4a + Q25_5, data=ph), 2))
+y$phs8 <- "PH"
+xy <- rbind(x, y)
+xy$phs8 <- as.factor(xy$phs8)
+ggplot(xy, aes(Q25_5, Freq)) + geom_bar(aes(fill=Q4a), stat="identity", position="stack") + facet_wrap(~phs8) +
+   theme(
+    strip.text.x = element_text(size = 15, colour = "brown", angle = 0),
+    plot.title = element_text(size=15, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=9, angle = 0, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=9), 
+    axis.title.x = element_text(color="#000033", size=9), 
+    axis.title.y = element_text(color="#000033", size=9, vjust=2),
+    legend.text = element_text(colour="#000033", size = 8)
+    ) 
+
+rm(x, y, xy)
+x <- as.data.frame(prop.table(xtabs(formula = ~ Q2a + Q25_5, data=s8), 2))
+x$phs8 <- "S8"
+y <- as.data.frame(prop.table(xtabs(formula = ~ Q2a + Q25_5, data=ph), 2))
+y$phs8 <- "PH"
+xy <- rbind(x, y)
+xy$phs8 <- as.factor(xy$phs8)
+ggplot(xy, aes(Q25_5, Freq)) + geom_bar(aes(fill=Q2a), stat="identity", position="stack") + facet_wrap(~phs8) +
+   theme(
+    strip.text.x = element_text(size = 15, colour = "brown", angle = 0),
+    plot.title = element_text(size=15, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=9, angle = 0, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=9), 
+    axis.title.x = element_text(color="#000033", size=9), 
+    axis.title.y = element_text(color="#000033", size=9, vjust=2),
+    legend.text = element_text(colour="#000033", size = 8)
+    ) 
+
+rm(x, y, xy)
+x <- as.data.frame(prop.table(xtabs(formula = ~ Q36_1 + Q25_5, data=s8), 2))
+x$phs8 <- "S8"
+y <- as.data.frame(prop.table(xtabs(formula = ~ Q36_1 + Q25_5, data=ph), 2))
+y$phs8 <- "PH"
+xy <- rbind(x, y)
+xy$phs8 <- as.factor(xy$phs8)
+ggplot(xy, aes(Q25_5, Freq)) + geom_bar(aes(fill=Q36_1), stat="identity", position="stack") + facet_wrap(~phs8) +
+   theme(
+    strip.text.x = element_text(size = 15, colour = "brown", angle = 0),
+    plot.title = element_text(size=15, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=9, angle = 0, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=9), 
+    axis.title.x = element_text(color="#000033", size=9), 
+    axis.title.y = element_text(color="#000033", size=9, vjust=2),
+    legend.text = element_text(colour="#000033", size = 8)
+    ) 
+```
+
+
+####**Medicaid**
+
+
+```{r, echo=FALSE}
+rm(x, y, xy)
+x <- as.data.frame(prop.table(xtabs(formula = ~ Q4a + Q25_2, data=s8), 2))
+x$phs8 <- "S8"
+y <- as.data.frame(prop.table(xtabs(formula = ~ Q4a + Q25_2, data=ph), 2))
+y$phs8 <- "PH"
+xy <- rbind(x, y)
+xy$phs8 <- as.factor(xy$phs8)
+ggplot(xy, aes(Q25_2, Freq)) + geom_bar(aes(fill=Q4a), stat="identity", position="stack") + facet_wrap(~phs8) +
+   theme(
+    strip.text.x = element_text(size = 15, colour = "brown", angle = 0),
+    plot.title = element_text(size=15, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=9, angle = 0, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=9), 
+    axis.title.x = element_text(color="#000033", size=9), 
+    axis.title.y = element_text(color="#000033", size=9, vjust=2),
+    legend.text = element_text(colour="#000033", size = 8)
+    ) 
+
+rm(x, y, xy)
+x <- as.data.frame(prop.table(xtabs(formula = ~ Q2a + Q25_2, data=s8), 2))
+x$phs8 <- "S8"
+y <- as.data.frame(prop.table(xtabs(formula = ~ Q2a + Q25_2, data=ph), 2))
+y$phs8 <- "PH"
+xy <- rbind(x, y)
+xy$phs8 <- as.factor(xy$phs8)
+ggplot(xy, aes(Q25_2, Freq)) + geom_bar(aes(fill=Q2a), stat="identity", position="stack") + facet_wrap(~phs8) +
+   theme(
+    strip.text.x = element_text(size = 15, colour = "brown", angle = 0),
+    plot.title = element_text(size=15, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=9, angle = 0, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=9), 
+    axis.title.x = element_text(color="#000033", size=9), 
+    axis.title.y = element_text(color="#000033", size=9, vjust=2),
+    legend.text = element_text(colour="#000033", size = 8)
+    ) 
+
+rm(x, y, xy)
+x <- as.data.frame(prop.table(xtabs(formula = ~ Q36_1 + Q25_2, data=s8), 2))
+x$phs8 <- "S8"
+y <- as.data.frame(prop.table(xtabs(formula = ~ Q36_1 + Q25_2, data=ph), 2))
+y$phs8 <- "PH"
+xy <- rbind(x, y)
+xy$phs8 <- as.factor(xy$phs8)
+ggplot(xy, aes(Q25_2, Freq)) + geom_bar(aes(fill=Q36_1), stat="identity", position="stack") + facet_wrap(~phs8) +
+   theme(
+    strip.text.x = element_text(size = 15, colour = "brown", angle = 0),
+    plot.title = element_text(size=15, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=9, angle = 0, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=9), 
+    axis.title.x = element_text(color="#000033", size=9), 
+    axis.title.y = element_text(color="#000033", size=9, vjust=2),
+    legend.text = element_text(colour="#000033", size = 8)
+    ) 
+```
+
+
+```{r}
+setwd("/home/anirban/Documents/BoulderHousingPartnersData")
+load("all.RData")
+library("foreign")
+library("ggplot2")
+
+all$crowding <- all$Bedrooms/all$Family.Members
+all$crowding1[all$crowding< 0.6] <- "crowded"
+all$crowding1[all$crowding>= 0.6] <- "not crowded"
+all$crowding1 <- as.factor(all$crowding1)
+ph <- subset(all, PH_or_S8=="PH")
+s8 <- subset(all, PH_or_S8=="S8")
+
+xtabs(formula = ~ crowding1 + Q35_6, data=ph)
+xtabs(formula = ~ crowding1 + Q35_6, data=s8)
+
+xtabs(formula = ~ Bedrooms + Q35_6, data=ph)
+xtabs(formula = ~ Bedrooms + Q35_6, data=s8)
+
+summary(ph$Q35_6)
+new <- data.frame(ph$TCode, as.factor(ph$location), ph$Q35_6)
+new_without_na <- subset(new, !is.na(ph.Q35_6))
+names(new_without_na)[2] = "location"
+names(new_without_na)[1] = "TCode"
+names(new_without_na)[3] = "Q35_6"
+# write.csv(new_without_na, "/home/anirban/Desktop/PH_Sites_study_space.csv")
+
+ggplot(new_without_na, aes(location)) + geom_bar(aes(fill=location)) + facet_wrap(~Q35_6) + scale_y_discrete(breaks=c(2, 4, 6, 8, 10, 12, 14))
+
+
+```
+
+TRANSPORTATION
+
+```{r}
+setwd("/media/anirban/a84ef5e0-59cf-454d-aeae-e112c9915900/home/anirban/Documents/BoulderHousingPartnersData")
+load("all.RData")
+library("foreign")
+library("ggplot2")
+s8<-subset(all, PH_or_S8=="S8")
+ph<-subset(all, PH_or_S8=="PH")
+
+all$Q8_1_5 <- factor(all$Q8_1_5, levels=c("No", "Yes"), labels=c("0=No", "1=Yes"))
+all$Q8_2_5 <- factor(all$Q8_2_5, levels=c("No", "Yes"), labels=c("0=No", "1=Yes"))
+all$Q10_4 <- factor(all$Q10_4, 
+                    levels=c("Very Easy", "Somewhat Easy", "Neutral", "Somewhat Difficult", "Very Difficult"), 
+                    labels=c("1", "2", "3", "4", "5"))
+all$Q17 <- factor(all$Q17, 
+                    levels=c("No, never", "Yes, 1 time", "Yes, 2 times", "Yes, 3 times", "Yes, 4 times or more"), 
+                    labels=c("1", "2", "3", "4", "5")
+                  )
+all$Q35_7 <- factor(all$Q35_7, levels=c("No", "Yes"), labels=c("0", "1"))
+
+x <- data.frame(as.numeric(all$Q8_1_5), as.numeric(all$Q8_2_5), as.numeric(all$Q10_4), as.numeric(all$Q17), as.numeric(all$Q35_7), as.numeric(all$Q36_5))
+cor(x, use="pairwise.complete.obs", method="spearman")
+
+y <- prcomp(~as.numeric(all$Q8_1_5) + as.numeric(all$Q8_2_5) + as.numeric(all$Q10_4) + as.numeric(all$Q17) + as.numeric(all$Q35_7) + as.numeric(all$Q36_5), data=x, scale=TRUE, center=TRUE)
+plot(y)
+print(y)
+
+# all$Q8_1_5 # Transportation a barrier to employment.
+# all$Q8_2_5 # Transportation a barrier to working more hours.
+# all$Q10_4 # How hard is it to pay for reliable transportation.
+# all$Q17 # How many times hard to get to appointments/work in the last two weeks?
+# all$Q35_7 # Lack of transportation a barrier to advancing skills or education?
+# all$Q36_5 # Transportation self sufficiency self assessment.
+
+all$Total.Annual.Income
+all$Tenant.Rent
+
+ggplot(all, aes(Q8_1_5, Total.Annual.Income)) + geom_boxplot()
+ggplot(all, aes(Q8_1_5, Tenant.Rent)) + geom_boxplot() 
+ggplot(all, aes(Q10_4, Total.Annual.Income)) + geom_boxplot()
+ggplot(all, aes(Q17, Total.Annual.Income)) + geom_boxplot() 
+ggplot(all, aes(Q35_7, Total.Annual.Income)) + geom_boxplot() # You can see clear differences.
+ggplot(all, aes(Q36_5, Total.Annual.Income)) + geom_boxplot() 
+
+
+all$perheaddisposable <- (all$Total.Annual.Income - (all$Tenant.Rent * 12)) / all$Family.Members
+
+ggplot(all, aes(Q8_1_5, perheaddisposable)) + geom_boxplot()
+ggplot(all, aes(Q10_4, perheaddisposable)) + geom_boxplot()
+ggplot(all, aes(Q17, perheaddisposable)) + geom_boxplot() 
+ggplot(all, aes(Q35_7, perheaddisposable)) + geom_boxplot() # You can see clear differences.
+ggplot(all, aes(Q36_5, perheaddisposable)) + geom_boxplot() 
+
+summary(aov(Total.Annual.Income ~ Q10_4, data=all))
+
+
+
+```

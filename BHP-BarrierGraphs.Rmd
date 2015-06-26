@@ -1,0 +1,106 @@
+---
+title: "BHP-BarrierGraphs"
+author: "Anirban Pal"
+date: "01/14/2015"
+output: html_document
+---
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+library("foreign")
+library("ggplot2")
+library("plyr") ## For desc()
+library("grid") ## For unit
+
+setwd("~/Documents/BoulderHousingPartnersData")
+all <- read.csv("Merged.csv")
+
+```
+
+The following is to make graph for Q3.
+
+```{r, echo=FALSE}
+##################### Plotting frequency percentages. Q3_1
+all$Q3_1 <- ordered(all$Q3_1,
+                levels = c("Yes", "No"),
+                labels = c("Yes", "No"))
+
+x1 <- as.data.frame(prop.table(xtabs(~Q3_1, data=subset(all, PH_or_S8=="PH")))*100)
+y1 <- as.data.frame(prop.table(xtabs(~Q3_1, data=subset(all, PH_or_S8=="S8")))*100)
+
+x1$PH_or_S8 <- "PH"
+y1$PH_or_S8 <- "S8"
+
+Q3_1merged <- rbind(x1, y1)
+Q3_1merged$PH_or_S8 <- as.factor(Q3_1merged$PH_or_S8)
+for(i in 1:length(Q3_1merged$Freq)) Q3_1merged$Freq[i] <- round(Q3_1merged$Freq[i], 0)
+summary(Q3_1merged)
+Q3_1merged$barrier <- as.factor("Lack of income")
+names(Q3_1merged)[1] <- "Q3"
+
+#######################################################################
+
+##################### Plotting frequency percentages. Q3_2
+all$Q3_2 <- ordered(all$Q3_2,
+                levels = c("Yes", "No"),
+                labels = c("Yes", "No"))
+
+x2 <- as.data.frame(prop.table(xtabs(~Q3_2, data=subset(all, PH_or_S8=="PH")))*100)
+y2 <- as.data.frame(prop.table(xtabs(~Q3_2, data=subset(all, PH_or_S8=="S8")))*100)
+
+x2$PH_or_S8 <- "PH"
+y2$PH_or_S8 <- "S8"
+
+Q3_2merged <- rbind(x2, y2)
+Q3_2merged$PH_or_S8 <- as.factor(Q3_2merged$PH_or_S8)
+for(i in 1:length(Q3_2merged$Freq)) Q3_2merged$Freq[i] <- round(Q3_2merged$Freq[i], 0)
+Q3_2merged$barrier <- as.factor("Lack of easy access to stores")
+names(Q3_2merged)[1] <- "Q3"
+summary(Q3_2merged)
+
+#######################################################################
+
+##################### Plotting frequency percentages. Q3_3
+all$Q3_3 <- ordered(all$Q3_3,
+                levels = c("Yes", "No"),
+                labels = c("Yes", "No"))
+
+x <- as.data.frame(prop.table(xtabs(~Q3_3, data=subset(all, PH_or_S8=="PH")))*100)
+y <- as.data.frame(prop.table(xtabs(~Q3_3, data=subset(all, PH_or_S8=="S8")))*100)
+
+x$PH_or_S8 <- "PH"
+y$PH_or_S8 <- "S8"
+
+Q3_3merged <- rbind(x, y)
+Q3_3merged$PH_or_S8 <- as.factor(Q3_3merged$PH_or_S8)
+for(i in 1:length(Q3_3merged$Freq)) Q3_3merged$Freq[i] <- round(Q3_3merged$Freq[i], 0)
+Q3_3merged$barrier <- as.factor("Lack of time to get to stores")
+names(Q3_3merged)[1] <- "Q3"
+summary(Q3_3merged)
+
+#######################################################################
+
+
+##################### Plotting frequency percentages. Q3_4
+all$Q3_4 <- ordered(all$Q3_4,
+                levels = c("Yes", "No"),
+                labels = c("Yes", "No"))
+
+x <- as.data.frame(prop.table(xtabs(~Q3_4, data=subset(all, PH_or_S8=="PH")))*100)
+y <- as.data.frame(prop.table(xtabs(~Q3_4, data=subset(all, PH_or_S8=="S8")))*100)
+
+x$PH_or_S8 <- "PH"
+y$PH_or_S8 <- "S8"
+
+Q3_4merged <- rbind(x, y)
+Q3_4merged$PH_or_S8 <- as.factor(Q3_4merged$PH_or_S8)
+for(i in 1:length(Q3_4merged$Freq)) Q3_4merged$Freq[i] <- round(Q3_4merged$Freq[i], 0)
+Q3_4merged$barrier <- as.factor("Lack of knowledge to find nutritious food")
+names(Q3_4merged)[1] <- "Q3"
+summary(Q3_4merged)
+
+#######################################################################
+

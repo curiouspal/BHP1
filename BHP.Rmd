@@ -1,0 +1,304 @@
+---
+title: "Boulder Housing Partners: Housing and Self-sufficiency"
+author: "Anirban Pal"
+date: "11/20/2014"
+output: html_document
+---
+
+Below are some analyses of data from a baseline survey of two groups of housing subsidy recipients. After cleaning the raw data files and merging the two separate files, following are some of the graphs.
+
+```{r, echo=TRUE}
+
+setwd("/home/anirban/Documents/BoulderHousingPartnersData")
+library("foreign")
+library("ggplot2")
+ph <- read.spss('PH.sav', to.data.frame=TRUE) ## Import PH data from SPSS files.
+s8 <- read.spss('S8_NA_999.sav', to.data.frame=TRUE) ## Import S8 data from SPSS files.
+
+# ph_loc <- read.csv("PH_Loc.csv") ## This is not needed any more. PH location site codes are already in phadditional file.
+phadditional <- read.csv("phadditional.csv")
+s8additional <- read.csv("s8additional.csv")
+# ph_loc <- ph_loc[1:67, 6:7]
+# names(ph_loc)[2] <- "location"
+names(phadditional)[1] <- "location"
+names(s8additional)[1] <- "location"
+names(phadditional)[2] <- "TCode"
+names(s8additional)[2] <- "TCode"
+s8$TCode<-tolower(s8$TCode)
+ph$TCode<-tolower(ph$TCode)
+
+# ph_loc$location <- as.factor(as.integer(ph_loc$location)) # Make "location" a categorical variable.
+
+
+ph$Q1 <- factor(ph$Q1,
+                levels = c("I owned my home", "I lived in private market rental housing (including student housing)", "I lived in subsidized housing (for example, Section 8, Public Housing)", "I lived with family and friends", "I was homeless"),
+                labels = c("Owned my home", "Market rental", "Subsidized housing", "With family/friends", "Was homeless"))
+
+s8$Q1 <- factor(s8$Q1,
+                levels = c("I owned my home", "I lived in private market rental housing (including student housing)", "I lived in subsidized housing (for example, Section 8, Public Housing)", "I lived with family and friends", "I was homeless"),
+                labels = c("Owned my home", "Market rental", "Subsidized housing", "With family/friends", "Was homeless"))
+
+ph <- ph[1:85, ]      ## Rows beyond row 85 do not have any data. So we remove those rows.
+s8 <- s8[-35, ]       ## Row 35 does not have any data. So we remove that row.
+
+
+
+## There are duplicate TCode entries in the s8 data frame. We need to get rid of them.
+s8<-s8[-198, ]  
+s8<-s8[-197, ]
+s8<-s8[-196, ]
+s8<-s8[-195, ]
+s8<-s8[-194, ]
+s8<-s8[-193, ]
+s8<-s8[-192, ]
+s8<-s8[-191, ]
+s8<-s8[-190, ]
+s8<-s8[-189, ]
+s8<-s8[-188, ]
+
+# Now lets try to merge the two files. But merging does not work because the two sets of variables in the two files do not match. PH has variables "Q3_10" and "BarrierHousing" that S8 does not. S8 has variables "Q30_Other" and "SSLanguage" that PH does not have. 
+
+summary(ph$Q3_10) # All 85 obs have the value NA.
+summary(s8$Q3_10) # NULL
+
+summary(ph$BarrierHousing) # All 85 observations have NA values.
+summary(s8$BarrierHousing) # NULL
+
+summary(s8$Q30_Other) # 255 obs have the value NA. The others have a value of 0.
+summary(ph$Q30_Other) # NULL
+
+summary(s8$SSLanguage) # This has useful data. It would be costly to delete this variable
+summary(ph$SSLanguage) # NULL
+
+
+
+
+# Lets create variables Q3_10 and BarrierHousing for s8 and variables Q30_Other and SSLanguage for ph and assigned a value of NA to these variables. That made the two files have the same set of variables.
+
+s8$Q3_10 <- NA
+ph$Q30_Other <- NA
+s8$BarrierHousing <- NA
+ph$SSLanguage <- NA
+
+# Now lets add the location codes to "ph" file from "ph_loc" file.
+ph <- merge(phadditional, ph, by = "TCode", all=TRUE)
+ph$location <- as.factor(ph$location)
+
+
+s8 <- merge(s8additional, s8, by = "TCode", all=TRUE)
+s8$location <- NA
+
+# Next we create a new variable PH_or_S8 for both the files. This will be helpful in identifying which household is S8 and which is PH after we have merged the two files. 
+ph$PH_or_S8 <- "PH"
+s8$PH_or_S8 <- "S8"
+
+
+# I notice that the file "s8" has Q11, Q17, Q19, Q20 coded differently than file "ph". So lets fix those.
+summary(s8$Q11)
+s8$Q11 <- as.factor(as.integer(s8$Q11))
+s8$Q11 <- factor(s8$Q11,
+                levels = c(1, 2, 3, 4, 5, 999),
+                labels = c("No, never", "Rarely", "Sometimes", "Most of the time", "Yes, all of the time", NA))
+summary(s8$Q17)
+s8$Q17 <- as.factor(as.integer(s8$Q17))
+s8$Q17 <- factor(s8$Q17,
+                levels = c(1, 2, 3, 4, 5, 999),
+                labels = c("No, never", "Yes, 1 time", "Yes, 2 times", "Yes, 3 times", "Yes, 4 times or more", NA))
+summary(s8$Q19)
+s8$Q19 <- as.factor(as.integer(s8$Q19))
+s8$Q19 <- factor(s8$Q19,
+                levels = c(1, 2, 999),
+                labels = c("Yes", "No", NA))
+summary(s8$Q20)
+s8$Q20 <- as.factor(as.integer(s8$Q20))
+s8$Q20 <- factor(s8$Q20,
+                levels = c(1, 2, 3, 4, 999),
+                labels = c("Yes, I currently have sufficient child care", "No, I currently have no child care, but need it", "No, I currently have some child care, but need more", "N/A, I currently do not need child care", NA))
+
+
+## In order to check if we have included all the observations from the Excel file in our analysis, lets try to see if there are observations in the Excel file that do not exist in the SPSS file for S8.
+# s8TCodesFromExcel <- read.csv("s8-listOfTCodes-fromExcel.csv")
+# summary(s8TCodesFromExcel)
+
+# s8_merged <- merge(s8, s8TCodesFromExcel, by = intersect(names(s8), names(s8TCodesFromExcel)), all=TRUE)
+# s8_merged$TCode <- as.factor(s8_merged$TCode)
+# summary(s8_merged$TCode)
+
+# Now lets create the merged file. PH survey sent = 131 (received 85); S8 surveys sent = 273 (received 257).
+
+ph$Q11 <- ordered(ph$Q11,
+                levels = c("No, never", "Rarely", "Sometimes", "Most of the time", "Yes, all of the time"),
+                labels = c("No, never", "Rarely", "Sometimes", "Most of the time", "Yes, all of the time"))
+s8$Q11 <- ordered(s8$Q11,
+                levels = c("No, never", "Rarely", "Sometimes", "Most of the time", "Yes, all of the time"),
+                labels = c("No, never", "Rarely", "Sometimes", "Most of the time", "Yes, all of the time"))
+
+# Check to see if the variables in S8 and PH are the same
+
+setdiff(names(s8), intersect(names(ph), names(s8)))
+setdiff(names(ph), intersect(names(ph), names(s8)))
+
+names(ph)[names(ph)=="Rec.d"]<-"Recd."
+names(ph)[names(ph)=="Scanned"]<-"Scanned."
+names(ph)[names(ph)=="Sent.to.CU"]<-"Sent.to.CU."
+names(ph)[names(ph)=="Non.Students.Age.18."]<-"Non.Students.Ages.18."
+
+all <- rbind(ph, s8)
+all$PH_or_S8<-as.factor(all$PH_or_S8)
+
+summary(all$TCode)
+summary(all$PH_or_S8)
+
+############################### END OF LOADING DATA #############################################################
+
+
+#write.table(all, "/home/anirban/Documents/BoulderHousingPartnersData/MergedFileFeb2015/Merged.csv", sep=",") # This saves the newly created data frame to a new file in CSV format.
+#write.table(ph, "~/Dropbox/DataAnalysis/BoulderHousingPartnersData/MergedFileFeb2015/ph.csv", sep=",") # This saves the newly created data frame to a new file in CSV format.
+#write.table(s8, "~/Dropbox/DataAnalysis/BoulderHousingPartnersData/MergedFileFeb2015/s8.csv", sep=",") # This saves the newly created data frame to a new file in CSV format.
+
+prop.table(xtabs(~SSHousing+PH_or_S8, data=all))*100
+ftable(xtabs(~SSHousing+PH_or_S8, data=all))
+summary(xtabs(~Q1+PH_or_S8, data=all))
+
+prop.table(xtabs(~Q1+PH_or_S8, data=s8))*100
+
+lbls <- paste(names(table(ph$Q1)), "\n", table(ph$Q1), sep="")
+pie(table(s8$Q1), labels = lbls, 
+    main="Pie Chart of S8 responses to Q1")
+
+lbls <- paste(names(table(ph$Q1)), "\n", table(ph$Q1), sep="")
+pie(table(ph$Q1), labels = lbls, 
+    main="Pie Chart of PH responses to Q1")
+
+
+# for(i in 1:172) print(names(all[i]))
+
+## Below are the plots of the frequency distribution of all the SS and Barrier indices.
+
+ggplot(all, aes(SSHousing, fill=PH_or_S8)) + geom_bar() + theme_grey(base_size = 18)
+ggplot(all, aes(SSEmployment, fill=PH_or_S8)) + geom_bar()+ theme_grey(base_size = 18)
+ggplot(all, aes(SSIncome, fill=PH_or_S8)) + geom_bar()+ theme_grey(base_size = 18)
+ggplot(all, aes(SSFood, fill=PH_or_S8)) + geom_bar()+ theme_grey(base_size = 18)
+ggplot(all, aes(SSTransportation, fill=PH_or_S8)) + geom_bar()+ theme_grey(base_size = 18)
+ggplot(all, aes(SSChildcare, fill=PH_or_S8)) + geom_bar()+ theme_grey(base_size = 18)
+ggplot(all, aes(SSSupportNetwork, fill=PH_or_S8)) + geom_bar()+ theme_grey(base_size = 18)
+ggplot(all, aes(SSLegal, fill=PH_or_S8)) + geom_bar()+ theme_grey(base_size = 18)
+ggplot(all, aes(SSHealth, fill=PH_or_S8)) + geom_bar()+ theme_grey(base_size = 18)
+ggplot(all, aes(SSEducation, fill=PH_or_S8)) + geom_bar()+ theme_grey(base_size = 18)
+ggplot(all, aes(SSWhole, fill=PH_or_S8)) + geom_bar()+ theme_grey(base_size = 18)
+
+
+# ggplot(all, aes(BarrierHousing, fill=PH_or_S8)) + geom_bar()
+# The above plot gives an error because all 342 observations have a value of NA for some reason. Need to check.
+# summary(all$BarrierHousing)
+
+ggplot(all, aes(BarrierToBecomingEmployed, fill=PH_or_S8)) + geom_bar()+ theme_grey(base_size = 18)
+ggplot(all, aes(BarrierToWorkingMoreHours, fill=PH_or_S8)) + geom_bar()+ theme_grey(base_size = 18)
+ggplot(all, aes(BarrierFood, fill=PH_or_S8)) + geom_bar()+ theme_grey(base_size = 18)
+ggplot(all, aes(BarrierTransportation, fill=PH_or_S8)) + geom_bar()+ theme_grey(base_size = 18)
+ggplot(all, aes(BarrierChildcare, fill=PH_or_S8)) + geom_bar()+ theme_grey(base_size = 18)
+ggplot(all, aes(BarrierSupportNetwork, fill=PH_or_S8)) + geom_bar()+ theme_grey(base_size = 18)
+ggplot(all, aes(BarrierLegal, fill=PH_or_S8)) + geom_bar()+ theme_grey(base_size = 18)
+ggplot(all, aes(BarrierEducation, fill=PH_or_S8)) + geom_bar()+ theme_grey(base_size = 18)
+
+
+all$Q11 <- ordered(all$Q11,
+                levels = c("No, never", "Rarely", "Sometimes", "Most of the time", "Yes, all of the time"),
+                labels = c("No, never", "Rarely", "Sometimes", "Most of the time", "Yes, all of the time"))
+
+
+x <- as.data.frame(prop.table(xtabs(~Q11, data=subset(all, PH_or_S8=="PH")))*100)
+y <- as.data.frame(prop.table(xtabs(~Q11, data=subset(all, PH_or_S8=="S8")))*100)
+
+x$PH_or_S8 <- "PH"
+y$PH_or_S8 <- "S8"
+
+Q11merged <- rbind(x, y)
+Q11merged$PH_or_S8 <- as.factor(Q11merged$PH_or_S8)
+for(i in 1:length(Q11merged$Freq)) Q11merged$Freq[i] <- round(Q11merged$Freq[i], 2)
+summary(Q11merged$Freq)
+
+ggplot(Q11merged, aes(as.factor(Q11), Freq, fill=PH_or_S8)) + geom_bar(stat='identity', position='dodge') + labs(x="", y="Percent (%)", title="In the past 3 months, did you or someone\nin your family ever cut the size of a meal or skip meals\nbecause you did not have enough money for food?") + 
+  geom_text(aes(label=round(Freq, 0)), position=position_dodge(width=1), vjust=1.25, colour="white", size = 7) + 
+  theme(
+    plot.title = element_text(size=20, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=18, angle = 45, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=18), 
+    axis.title.x = element_text(color="#000033", size=18), 
+    axis.title.y = element_text(color="#000033", size=18, vjust=2),
+    legend.title=element_blank(),
+    legend.text = element_text(colour="#000033", size = 18)
+    ) +
+  scale_fill_manual(values = c("#000030", "#51153255"), name="",
+                         breaks=c("PH", "S8"),
+                         labels=c("PH (N=85)", "S8 (N=256)")) 
+
+##################### Plotting frequency percentages. Q17
+
+summary(all$Q17)
+all$Q17 <- ordered(all$Q17,
+                levels = c("No, never", "Yes, 1 time", "Yes, 2 times", "Yes, 3 times", "Yes, 4 times or more"),
+                labels = c("No, never", "Yes, 1 time", "Yes, 2 times", "Yes, 3 times", "Yes, 4 times or more"))
+
+x <- as.data.frame(prop.table(xtabs(~Q17, data=subset(all, PH_or_S8=="PH")))*100)
+y <- as.data.frame(prop.table(xtabs(~Q17, data=subset(all, PH_or_S8=="S8")))*100)
+
+x$PH_or_S8 <- "PH"
+y$PH_or_S8 <- "S8"
+
+Q17merged <- rbind(x, y)
+Q17merged$PH_or_S8 <- as.factor(Q17merged$PH_or_S8)
+for(i in 1:length(Q17merged$Freq)) Q17merged$Freq[i] <- round(Q17merged$Freq[i], 2)
+summary(Q17merged)
+
+ggplot(Q17merged, aes(as.factor(Q17), Freq, fill=PH_or_S8)) + geom_bar(stat='identity', position='dodge') + labs(x="", y="Percent (%)", title="During the last two weeks, was it hard\nfor you to get to work or appointments?") + 
+  geom_text(aes(label=round(Freq, 0)), position=position_dodge(width=1), vjust=1.25, colour="white", size = 7) + 
+  theme(
+    plot.title = element_text(size=20, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=18, angle = 45, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=18), 
+    axis.title.x = element_text(color="#000033", size=18), 
+    axis.title.y = element_text(color="#000033", size=18, vjust=2),
+    legend.title=element_blank(),
+    legend.text = element_text(colour="#000033", size = 18)
+    ) +
+  scale_fill_manual(values = c("#000030", "#51153255"), name="",
+                         breaks=c("PH", "S8"),
+                         labels=c("PH (N=78)", "S8 (N=240)"))
+
+summary(subset(all, PH_or_S8=="PH"))
+                                                                                                                                                                                                          
+#######################################################################
+
+## 
+```
+
+Checking which questions had more missing data.
+
+```{r}
+names(all)
+library("ggplot2")
+missing <- data.frame(ques=names(all), missingvalues=0)
+
+for(i in 1:length(all)) {
+  for(j in 1:length(all$Q1)) {
+    if(is.na(all[j, i])) missing[i, 2] <- missing[i, 2] + 1
+  }
+}
+  
+
+
+
+des <- read.csv("~/Documents/BoulderHousingPartnersData/VarDescription.csv")
+names(des)[1] <- "ques"
+z <- merge(missing, des, by = intersect(names(missing), names(des)), all=TRUE)
+x <- z[order(z$missingvalues),]
+x<-x[1:171,]
+## write.table(x, "~/Documents/BoulderHousingPartnersData/missingWithDes.txt", sep=",") # This saves the newly created data frame to a new file in CSV format.
+
+y <- x[1:85, ]
+
+ggplot(x[85:171, ], aes(reorder(ques, missingvalues), missingvalues)) + geom_bar(stat="identity", fill="cadetblue") + coord_flip()
+```
+
+

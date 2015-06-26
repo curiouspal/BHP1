@@ -1,0 +1,184 @@
+---
+title: "BHP-multivariateAnalysis"
+author: "Anirban Pal"
+date: "12/20/2014"
+output: html_document
+---
+
+
+
+```{r}
+install.packages("GGally")
+install.packages("scales")
+install.packages("memisc")
+install.packages("lattice")
+install.packages("car")
+install.packages("aod")
+
+
+library("ggplot2")
+library("GGally")
+library("scales")
+library("memisc")
+library("aod")
+
+setwd("/home/anirban/Documents/BoulderHousingPartnersData")
+all <- read.csv("Merged.csv") 
+
+
+all1 <- data.frame(all$Q1, all$Q2, all$Q5, stringsAsFactors = default.stringsAsFactors())
+
+ggpairs(all1, params = c(shape=I("."), outlier.shape=I(".")))
+ggpairs(all1)
+names(all)
+
+## Below are two ways of running logistic regressions. Note the difference in output. Generally glm() function gives more information than multinom() function.
+model1 <- glm(PH_or_S8~Q39_1, data=all, family = "binomial")
+summary(model1)
+
+model2 <- multinom(PH_or_S8~Q39_1, data=all)
+summary(model2)
+```
+
+There are several ideas that can be explored. Once is to see whether those who are not SS in one dimension are also likely to be not SS in others. That is, see if there are more people with aggregate scores of SS high or low but not in between. 
+
+```{r, echo=FALSE}
+
+
+
+```
+
+1) H1: The next thing is to see if those who are unemployed are more likely to have certain attributes. 
+2) H2: Those who answered they have children are more likely to have low self-sufficiency scores.
+3) H3: Those who missed payments of rent at least once are more likely to self assess themselves as less self-sufficient.
+4) H4: 
+
+
+```{r, echo=TRUE}
+emp_model <- glm(PH_or_S8~Q39_1, data=all, family = "binomial")
+summary(emp_model)
+```
+
+One method to visualize the different bivariate analysis is by creating bar graphs of conditional probabilities similar to what we did for PH vs. S8 graphs. (The code below needs to be altered to show the relationship between two questions not between a question and whether PH or S8.)
+
+```{r}
+
+# Below is an example of conditional probabilities. We want to see whether those who have children were more likely to be homeless before.
+
+summary(all$Q19) ## This question is asking if they have children below 13 years of age.
+
+all$Q1 <- ordered(all$Q1,
+                levels = c("I owned my home", "I lived in private market rental housing (including student housing)", "I lived in subsidized housing (for example, Section 8, Public Housing)", "I lived with family and friends", "I was homeless"),
+                labels = c("Owned my home", "Market rental", "Subsidized housing", "With family/friends", "Was homeless"))
+
+x <- as.data.frame(prop.table(xtabs(~Q1, data=subset(all, Q19=="Yes")))*100)
+y <- as.data.frame(prop.table(xtabs(~Q1, data=subset(all, Q19=="No")))*100)
+
+x$Q19 <- "Yes"
+y$Q19 <- "No"
+
+Q1merged <- rbind(x, y)
+Q1merged$Q19 <- as.factor(Q1merged$Q19)
+for(i in 1:length(Q1merged$Freq)) Q1merged$Freq[i] <- round(Q1merged$Freq[i], 2)
+summary(Q1merged)
+
+ggplot(Q1merged, aes(as.factor(Q1), Freq, fill=Q19)) + geom_bar(stat='identity', position='dodge') + labs(x="Prior Housing", y="Percent (%)", title="Where were you living before you\nbegan receiving housing assistance from BHP?") + 
+   geom_text(aes(label=round(Freq, 0)), position=position_dodge(width=1), vjust=1.25, colour="white", size = 7) + 
+  theme(
+    plot.title = element_text(size=20, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=18, angle = 45, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=18), 
+    axis.title.x = element_text(color="#000033", size=18), 
+    axis.title.y = element_text(color="#000033", size=18, vjust=2),
+    legend.title=element_blank(),
+    legend.text = element_text(colour="#000033", size = 18)
+    ) +
+  scale_fill_manual(values = c("#000030", "#51153255"), name="",
+                         breaks=c("Yes", "No"),
+                         labels=c("Have children", "Don't have children"))
+
+
+
+barplot(table(all$Q1, all$Q19), legend=T)
+ggplot(as.data.frame(table(all$Q1, all$Q19)), aes(Q19, Freq)) + geom_bar(fill=Q1)
+
+barplot(table(all$Q1, all$Q19), beside=T, legend=T)
+ggplot(x, aes((Var1), Freq)) + geom_bar()
+
+class(table(all$Q19, all$Q1))
+
+################ A DIFFERENT GRAPH
+all$Q1 <- ordered(all$Q1,
+                levels = c("I owned my home", "I lived in private market rental housing (including student housing)", "I lived in subsidized housing (for example, Section 8, Public Housing)", "I lived with family and friends", "I was homeless"),
+                labels = c("Owned my home", "Market rental", "Subsidized housing", "With family/friends", "Was homeless"))
+
+x <- as.data.frame(prop.table(xtabs(~Q1, data=subset(all, PH_or_S8=="PH")))*100)
+y <- as.data.frame(prop.table(xtabs(~Q1, data=subset(all, PH_or_S8=="S8")))*100)
+
+x$PH_or_S8 <- "PH"
+y$PH_or_S8 <- "S8"
+
+Q1merged <- rbind(x, y)
+Q1merged$PH_or_S8 <- as.factor(Q1merged$PH_or_S8)
+for(i in 1:length(Q1merged$Freq)) Q1merged$Freq[i] <- round(Q1merged$Freq[i], 2)
+summary(Q1merged)
+ggplot(Q1merged, aes(PH_or_S8, Freq, fill=Q1, order=desc(Q1))) + geom_bar(stat="identity", width=0.5) + labs(x="", y="Percent", title="Where were you living before you began receiving housing
+assistance from Boulder Housing Partners?") + theme(plot.title = element_text(size=20, face="bold", vjust=3), axis.text.x = element_text(angle = 90, hjust = 1))
+                                                                                                                                                                                                          
+#######################################################################
+```
+
+Trying some new relationships with regards to Child care:
+
+```{r}
+summary(all$Q19) # Do you have kids under 13?
+wc <- subset(all, Q19=="Yes") # I select only those respondents who have children. 
+
+summary(all$Q20) # Whether you need (more) child care?
+
+summary(all$Q22_3) # Affordability a barrier to child care?
+
+summary(all$Q35_3) # Responsibility for children barrier to advance skills/education?
+
+summary(all$Q8_1_8) # Responsibilty for children barrier to employment?
+
+barplot(table(all$Q20, all$Q35_3), beside=T, legend=T, xlab="Is child care a barrier to advancing skills?", ylab="Count", main="Cross tabulation: Is Child care sufficient? vs. Is child care a barrier to advancing skills?")
+
+barplot(table(all$Q35_3, all$Q20), beside=T, legend=T, xlab="Child care sufficient?", ylab="Count", main="Cross tabulation: Is Child care sufficient? vs. Is child care a barrier to advancing skills?")
+
+barplot(table(all$Q20, all$Q22_3), beside=T, legend=T, xlab="Affordability a barrier to child care?", ylab="Count", main="Cross tabulation: Is Child care sufficient? vs. Affordability a barrier to child care?")
+
+barplot(table(all$Q8_1_8, all$Q35_3), legend=T, xlab="Is child care a barrier to advancing skills?", ylab="Count", main="Cross tabulation: Is Child care a barrier to employment? vs. Is child care a barrier to advancing skills?")
+
+
+```
+
+Make a data frame with the name of each variable and the number of NAs in each of them.
+
+```{r}
+names(all)
+library("ggplot2")
+missing <- data.frame(ques=names(all), missingvalues=0)
+
+for(i in 1:length(all)) {
+  for(j in 1:length(all$Q1)) {
+    if(is.na(all[j, i])) missing[i, 2] <- missing[i, 2] + 1
+  }
+}
+  
+
+
+
+des <- read.csv("~/Documents/BoulderHousingPartnersData/VarDescription.csv")
+names(des)[1] <- "ques"
+z <- merge(missing, des, by = intersect(names(missing), names(des)), all=TRUE)
+x <- z[order(z$missingvalues),]
+x<-x[1:171,]
+write.table(x, "~/Documents/BoulderHousingPartnersData/missingWithDes.txt", sep=",") # This saves the newly created data frame to a new file in CSV format.
+
+y <- x[1:85, ]
+
+ggplot(y, aes(reorder(ques, missingvalues), missingvalues)) + geom_bar(stat="identity") + coord_flip()
+```
+We see that questions on barriers to legal assistance (Q27) have very low response rates. So do questions on food barriers (Q15), transportation barriers (Q18), child care (Q21, Q22).
+

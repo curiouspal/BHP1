@@ -1,0 +1,438 @@
+---
+title: "BHP-Crosstabs"
+author: "Anirban Pal"
+date: "01/20/2015"
+output: html_document
+---
+
+Relationships between some of the questions in the survey are explored below using cross-tabulations. For each pair of questions, we report three crosstabs: the first one shows the absolute counts, the second is a percentage count with each row of numbers adding up to 100 percent, and the third crosstab is also a percentage count with each column of numbers adding up to 100 percent. 
+
+
+
+**Health insurance (Q28) vs. Current health? (Q29)** 
+
+```{r, echo=FALSE}
+########################################################################3
+setwd("~/Documents/BoulderHousingPartnersData")
+all <- read.csv("Merged.csv") 
+library("pander")
+library("ggplot2")
+panderOptions('table.split.table', Inf)
+panderOptions('table.split.cells', Inf)
+panderOptions('table.alignment.rownames', 'left')
+panderOptions('table.style', 'multiline')
+panderOptions('table.emphasize.rownames', FALSE)
+all$Q2 <- ordered(all$Q2,
+                  levels = c("For the next 6 months", "For the next 7 – 12 months", "For the next 1 – 2 years", "For the next 3 – 5 years", "For more than 5 years"),
+                  labels = c("<6 months", "7-12 months", "1-2 years", "3-5 years", ">5 years"))
+all$Q20 <- ordered(all$Q20,
+                   levels = c("Yes, I currently have sufficient child care", "No, I currently have no child care, but need it", "No, I currently have some child care, but need more", "N/A, I currently do not need child care"),
+                   labels = c("Yes, I currently have\nsufficient child care", "No, I currently have no\nchild care, but need it", "No, I currently have some\nchild care, but need more", "N/A, I currently do not\nneed child care"))
+
+all$Q10_3 <- ordered(all$Q10_3,
+                     levels = c("Very Easy", "Somewhat Easy", "Neutral", "Somewhat Difficult", "Very Difficult"),
+                     labels = c("Very Easy", "Somewhat Easy", "Neutral", "Somewhat Difficult", "Very Difficult"))
+all$Q32 <- ordered(all$Q32,
+                   levels = c("Graduate degree (Master’s/Ph.D.)", "Undergraduate degree (Bachelor’s/Associate’s)", "Some college", "High school diploma or GED",   "Did not graduate from high school"),
+                   labels = c("Master’s/Ph.D.", "Bachelor’s/Associate’s", "Some college", "High school diploma",   "Did not graduate from high school"))
+all$Q33 <- ordered(all$Q33,
+                   levels = c("Yes, I got it more than a year ago", "Yes, I got it during the last year", "No, but I am planning to get it", "No, I am not planning to get it",   "No, I am not sure if I need it"),
+                   labels = c("Yes, I got it more than a year ago", "Yes, I got it during the last year", "No, but I am planning to get it", "No, I am not planning to get it",   "No, I am not sure if I need it"))
+all$Q36_1 <- ordered(all$Q36_1,
+                      levels = c("Urgent situation, currently in crisis", "Vulnerable, need support to move forward", "Safe, family is making progress towards stability", "Stable, family is stable, safe and moving towards thriving", "Thriving, family is self-sufficient and thriving"),
+                      labels = c("Currently in crisis", "Vulnerable", "Safe", "Stable", "Thriving"))
+all$Q36_10 <- ordered(all$Q36_10,
+                      levels = c("Urgent situation, currently in crisis", "Vulnerable, need support to move forward", "Safe, family is making progress towards stability", "Stable, family is stable, safe and moving towards thriving", "Thriving, family is self-sufficient and thriving"),
+                      labels = c("Currently in crisis", "Vulnerable", "Safe", "Stable", "Thriving"))
+all$Q36_9 <- ordered(all$Q36_9,
+                      levels = c("Urgent situation, currently in crisis", "Vulnerable, need support to move forward", "Safe, family is making progress towards stability", "Stable, family is stable, safe and moving towards thriving", "Thriving, family is self-sufficient and thriving"),
+                      labels = c("Currently in crisis", "Vulnerable", "Safe", "Stable", "Thriving"))
+
+```
+
+```{r}
+# Crosstabs of actual counts: Health insurance Q28 vs. How would you rate your current health? Q29
+pander(xtabs(formula = ~Q28+Q29, data=all))
+df <- as.data.frame(xtabs(formula = ~Q28+Q29, data=all))
+ggplot(df, aes(Q29, Q28)) + geom_point(aes(size=Freq), color="cadetblue") + scale_size_continuous(range=c(1,30)) + 
+  theme(
+    plot.title = element_text(size=20, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=15, angle = 45, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=15, color="#000033"), 
+    axis.title.x = element_text(color="#000033", size=18), 
+    axis.title.y = element_text(color="#000033", size=18, vjust=2),
+    legend.position="none"
+  ) +
+  geom_text(aes(label = Freq), size=3)
+
+
+# Crosstabs of percentage frequencies: Health insurance Q28 vs. How would you rate your current health? Q29
+# Each row of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~Q28+Q29, data=all), 1)*100, 0))
+x<-all[all$Q28=="All the members of our household are covered by adequate health insurance coverage." | all$Q28=="None of the members in our household has health insurance coverage.", ] 
+x$Q28 <- as.factor(x$Q28)
+
+pander(round(prop.table(xtabs(formula = ~x$Q28 + x$Q29, data=x, 1)*100, 0)))
+
+# Crosstabs of percentage frequencies: Health insurance Q28 vs. How would you rate your current health? Q29
+# Each column of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~Q28+Q29, data=all), 2)*100, 0))
+```
+
+From the three tables above, we see that only 50% of those who reported that they are in "quite poor" health said that all members of their household have adequate health insurance coverage. Three household heads reported that they are currently in 'quite poor' health but that none of the members of their household have health insurance coverage - perhaps the most vulnerable group in terms of health. 26% and 33% of those households that have adequate health insurance coverage for all members in the HH reported that they are in 'excellent' and 'good' health respectively. But we cannot see any consistent relationship between health insurance coverage and the current health status of the household head.  
+
+----------------------------------------------------------------------------------------------------------
+
+**Self assessment of health (of the household) vs. current health of the head of the household (Q29)**
+
+If we look at the relationship between Self assessment of health (Q36_9) and a similar question 'How would you rate your current health?' (Q29), the results are as follows. No discernible relationship can be inferred from them. 
+
+```{r}
+#######################################################################
+# Crosstabs of actual counts: Self assessment of health SS Q36_9 vs. How would you rate your current health? Q29
+pander(xtabs(formula = ~Q36_9+Q29, data=all))
+
+# Crosstabs of percentage frequencies: Self assessment of health SS Q36_9 vs. How would you rate your current health? Q29
+# Each row of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~Q36_9+Q29, data=all), 1)*100, 0))
+
+# Crosstabs of percentage frequencies: Self assessment of health SS Q36_9 vs. How would you rate your current health? Q29
+# Each column of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~Q36_9+Q29, data=all), 2)*100, 0))
+```
+
+----------------------------------------------------------------------------------------------------------
+
+**Is health a barrier to housing SS Q3_4 vs. How would you rate your current health? Q29**
+
+Below are some results that are as we would have expected. Only 8% of those with excellent health said that health was a barrier to housing SS whereas 64% of those who reported that they ware in quite poor health said that health was a barrier to their housing SS.
+
+```{r}
+#######################################################################
+# Crosstabs of actual counts: Is health a barrier to housing SS Q3_4 vs. How would you rate your current health? Q29
+pander(xtabs(formula = ~Q29 + Q3_4, data=all))
+
+# Crosstabs of percentage frequencies:  Is health a barrier to housing SS Q3_4 vs. How would you rate your current health? Q29
+# Each row of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~Q29 + Q3_4, data=all), 1)*100, 0))
+
+# Crosstabs of percentage frequencies:  Is health a barrier to housing SS Q3_4 vs. How would you rate your current health? Q29
+# Each column of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~Q29 + Q3_4, data=all), 2)*100, 0))
+```
+
+
+----------------------------------------------------------------------------------------------------------
+
+**How hard to pay for health care for myself and family Q10_3 vs. How would you rate your current health? Q29**
+
+Results are similar to what we would expect.
+
+```{r}
+#######################################################################
+# Crosstabs of actual counts: Very hard to pay for health care for myself and family Q10_3 vs. How would you rate your current health? Q29
+pander(xtabs(formula = ~ Q10_3 + Q29, data=all))
+
+# Crosstabs of percentage frequencies:  Very hard to pay for health care for myself and family Q10_3 vs. How would you rate your current health? Q29
+# Each row of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~Q10_3 + Q29, data=all), 1)*100, 0))
+
+# Crosstabs of percentage frequencies:  Very hard to pay for health care for myself and family Q10_3 vs. How would you rate your current health? Q29
+# Each column of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~Q10_3 + Q29, data=all), 2)*100, 0))
+```
+
+----------------------------------------------------------------------------------------------------------
+
+
+**Do you receive Colorado Health Plan Plus support? Q25_3 vs. How would you rate your current health? Q29**
+
+Looking at households that reported receiving the Colorado Health Plan Plus support (Q25_3), we notice that 23 household heads who said that they are in quite poor health, do not receive CHP+ support. Only 6 of these households receive this support. 18% of those who receive this support have 'excellent' health and 32% of those who receive this support have 'good' health. Compare that with 13% and 16% of the same group who say they are in 'poor' health and 'quite poor' health respectively. It might be worthwhile checking eligibility for this support and looking for ways to get them in the program. 
+
+```{r}
+#######################################################################
+# Crosstabs of actual counts: Do you receive Colorado Health Plan Plus support? Q25_3 vs. How would you rate your current health? Q29
+pander(xtabs(formula = ~ Q29+ Q25_3, data=all))
+
+# Crosstabs of percentage frequencies:  Do you receive Colorado Health Plan Plus support? Q25_3 vs. How would you rate your current health? Q29
+# Each row of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~Q29+ Q25_3, data=all), 1)*100, 0))
+
+# Crosstabs of percentage frequencies:  Do you receive Colorado Health Plan Plus support? Q25_3 vs. How would you rate your current health? Q29
+# Each column of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~Q29+ Q25_3, data=all), 2)*100, 0))
+```
+
+
+----------------------------------------------------------------------------------------------------------
+
+**Where do you go for primary health care? Q30_1 vs. How would you rate your current health? Q29**
+
+Only about 40% of those who are in poor or quite poor health have a family physician. Wonder if this number can be increased.
+```{r}
+#######################################################################
+# Crosstabs of actual counts: Where do you go for primary health care? Q30_1 vs. How would you rate your current health? Q29
+pander(xtabs(formula = ~ Q30_1 + Q29, data=all))
+
+# Crosstabs of percentage frequencies:  Where do you go for primary health care? Q30_1 vs. How would you rate your current health? Q29
+# Each row of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~Q30_1 + Q29, data=all), 1)*100, 0))
+
+# Crosstabs of percentage frequencies:  Where do you go for primary health care? Q30_1 vs. How would you rate your current health? Q29
+# Each column of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~Q30_1 + Q29, data=all), 2)*100, 0))
+```
+----------------------------------------------------------------------------------------------------------
+
+**How are people's health (Q29) related to whether or not they have kids (Q19)?**
+
+It seems household heads with children under 13 are less likely to be in poor health than those without children. This might be related to age (residents without children <13 might be older than those with children; we can check this if we have age data of residents). Its also possible that only those in good health choose to have children. There are 22 household heads (5 PH and 17 S8) who are in "quite poor" health and who also have children. 
+
+```{r}
+#######################################################################
+pander(xtabs(formula = ~ Q29 + Q19, data=all))
+
+# Each row of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~Q29 + Q19, data=all), 1)*100, 0))
+
+# Each column of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~Q29 + Q19, data=all), 2)*100, 0))
+
+x<-subset(all, all$Q29 == "Quite poor" & all$Q19 == "Yes")
+pander(summary(x$PH_or_S8))
+
+```
+
+
+----------------------------------------------------------------------------------------------------------
+
+
+**How are people's health (Q29) related to how much education they have (Q32)?** 
+
+No discernible relationship. 
+
+```{r}
+#######################################################################
+pander(xtabs(formula = ~ Q32 + Q29, data=all))
+
+# Each row of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~Q32 + Q29, data=all), 1)*100, 0))
+
+# Each column of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~Q32 + Q29, data=all), 2)*100, 0))
+
+```
+
+
+----------------------------------------------------------------------------------------------------------
+
+**Relationships between not having (enough) child care (Q20) and employment status (Q5)?**
+
+```{r}
+#######################################################################
+pander(xtabs(formula = ~ Q5 + Q20, data=all))
+
+# Each row of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~ Q5 + Q20, data=all), 1)*100, 0))
+
+# Each column of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~ Q5 + Q20, data=all), 2)*100, 0))
+
+```
+
+
+----------------------------------------------------------------------------------------------------------
+
+**Relationship between expectation of future time in BHP housing (Q2) and level of education (Q32)?**
+
+There is a likely relationship between level of education of the household head and their expectation of future time in BHP housing. 61 percent of those who did not graduate from high school said that they expect to remain in BHP housing for more than 5 years where as among those graduate degree holders (Master's and PhD) 60 percent said that they will remain in BHP housing for only about 1 or 2 years more.
+```{r}
+#######################################################################
+pander(xtabs(formula = ~ Q32 + Q2, data=all))
+
+# Each row of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~ Q32 + Q2, data=all), 1)*100, 0))
+
+# Each column of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~ Q32 + Q2, data=all), 2)*100, 0))
+
+```
+
+
+----------------------------------------------------------------------------------------------------------
+
+**Relationship between expectation of future time in BHP housing (Q2) and vocational credentials (Q33)?**
+
+No relationship.
+
+```{r}
+#######################################################################
+pander(xtabs(formula = ~ Q33 + Q2, data=all))
+
+# Each row of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~ Q33 + Q2, data=all), 1)*100, 0))
+
+# Each column of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~ Q33 + Q2, data=all), 2)*100, 0))
+
+```
+
+----------------------------------------------------------------------------------------------------------
+
+**Relationship between expectation of future time in BHP housing (Q2) and primary language at home (Q39)?** 
+
+No relationship.
+
+```{r}
+#######################################################################
+pander(xtabs(formula = ~  Q2 + all$Q39, data=all))
+
+# Each row of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~ Q2 + all$Q39, data=all), 1)*100, 0))
+
+# Each column of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~ Q2 + all$Q39, data=all), 2)*100, 0))
+
+```
+
+----------------------------------------------------------------------------------------------------------
+
+**Is responsibilty of children a barrier to education? (Q35_3) vs. Do you have sufficient child care? (Q20)**
+
+Surprisingly, among those who say that they currently do not need child care, 77 percent say that responsibility for children IS indeed a barrier to developing skills or education. Also, 71 percent of those who say that they currently have sufficient childcare, also say that responsibity for children is a barrier to education. 
+```{r}
+#######################################################################
+pander(xtabs(formula = ~all$Q20 + all$Q35_3, data=all))
+
+# Each row of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~all$Q20 + all$Q35_3, data=all), 1)*100, 0))
+
+# Each column of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~all$Q20 + all$Q35_3, data=all), 2)*100, 0))
+
+```
+
+2----------------------------------------------------------------------------------------------------------
+
+**Is lack of skills a barrier to employment (Q8_1_3) vs. Self assessment of SS in education? (Q36_10)**
+
+The results are as we would expect. 40% of those who said that lack of skills is a barrier to employment described their current state of SS in education as "vulnerable" whereas only only 9 percent of the same group said that their current state of SS in education is "thriving". What is intereseting to note is that very few people (only 9) described their current state of SS in education as at "crisis" level. Perhaps hardships in other dimensions are given higher priority by the households than education.
+
+
+```{r}
+#######################################################################
+pander(xtabs(formula = ~all$Q36_10 + all$Q8_1_3, data=all))
+
+# Each row of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~all$Q36_10 + all$Q8_1_3, data=all), 1)*100, 0))
+
+# Each column of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~all$Q36_10 + all$Q8_1_3, data=all), 2)*100, 0))
+
+```
+
+2----------------------------------------------------------------------------------------------------------
+
+**How long do you expect future housing assistance (Q2) vs. Self assessment of SS in Housing? (Q36_1)**
+
+No relationship is observed from the results. It appears that respondents avoided choosing the extreme answers ("currently in crisis" or "thriving") and mostly chose one of the middle three options. If we look only the middle three options ("vulnerable", "safe", and "stable") there is hardly any pattern. Only 5% of those who have described their situation in SS in housing as "stable" said that they expect to be in BHP housing for 7-12 months, compared to 36% of the same group who said that they expect to be in BHP housing for 3-5 years. At the same time, 9% of those who described their condition as "vulnerable" expected to be in BHP housing for another 7-12 months.  
+
+```{r}
+#######################################################################
+pander(xtabs(formula = ~all$Q36_1 + all$Q2, data=all))
+
+# Each row of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~all$Q36_1 + all$Q2, data=all), 1)*100, 0))
+
+# Each column of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~all$Q36_1 + all$Q2, data=all), 2)*100, 0))
+
+```
+
+
+2----------------------------------------------------------------------------------------------------------
+
+**Highest level of education (Q32) vs. Don’t know how to find community organizations/social events as network barrier? (Q24_6)**
+
+There IS a relationship beween the two. Among those who said that not knowing how to find a community organization is one of the network barriers, we are more likely to see that they belong to categories with lower levels of education.
+
+```{r}
+#######################################################################
+pander(xtabs(formula = ~all$Q32 + all$Q24_6, data=all))
+
+# Each row of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~all$Q32 + all$Q24_6, data=all), 1)*100, 0))
+
+# Each column of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~all$Q32 + all$Q24_6, data=all), 2)*100, 0))
+
+```
+
+
+2----------------------------------------------------------------------------------------------------------
+
+**Highest level of education (Q32) vs. Self assessment of SS in education (Q36_10)**
+
+
+```{r}
+#######################################################################
+pander(xtabs(formula = ~all$Q32 + all$Q36_10, data=all))
+
+# Each row of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~all$Q32 + all$Q36_10, data=all), 1)*100, 0))
+
+# Each column of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~all$Q32 + all$Q36_10, data=all), 2)*100, 0))
+
+```
+
+
+2----------------------------------------------------------------------------------------------------------
+
+**How long do you expect future housing assistance (Q2) vs. Current health? (Q29)**
+
+
+```{r}
+#######################################################################
+pander(xtabs(formula = ~all$Q29 + all$Q2, data=all))
+
+# Each row of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~all$Q29 + all$Q2, data=all), 1)*100, 0))
+
+# Each column of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~all$Q29 + all$Q2, data=all), 2)*100, 0))
+
+```
+
+
+2----------------------------------------------------------------------------------------------------------
+
+**Lack of income as food barrier (Q15_1) vs. How many times income run out last 3 months? (Q9)**
+
+
+```{r}
+#######################################################################
+df <- as.data.frame(xtabs(formula = ~all$Q9 + all$Q15_1, data=all))
+ggplot(df, aes(all.Q9, all.Q15_1)) + geom_point(aes(size=Freq), color="cadetblue") + scale_size_continuous(range=c(1,100)) + 
+  theme(
+    plot.title = element_text(size=20, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=15, angle = 45, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=15, color="#000033"), 
+    axis.title.x = element_text(color="#000033", size=18), 
+    axis.title.y = element_text(color="#000033", size=18, vjust=2),
+    legend.position="none"
+  ) +
+  geom_text(aes(label = Freq), size=3)
+
+
+
+pander(xtabs(formula = ~ all$Q9 + all$Q15_1, data=all))
+
+# Each row of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~all$Q9 + all$Q15_1, data=all), 1)*100, 0))
+
+# Each column of numbers add up to 100 percent.
+pander(round(prop.table(xtabs(formula = ~all$Q9 + all$Q15_1, data=all), 2)*100, 0))
+
+```
+

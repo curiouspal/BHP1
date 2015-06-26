@@ -1,0 +1,565 @@
+---
+title: "S8 Movers versus Non-movers"
+author: "Anirban Pal"
+date: "03/09/2015"
+output: html_document
+---
+
+
+
+```{r}
+setwd("/home/anirban/Documents/BoulderHousingPartnersData")
+library("foreign")
+library("ggplot2")
+library("pander")
+library("manipulate")
+library("plyr")
+library("R2HTML")
+panderOptions('table.split.table', Inf)
+panderOptions('table.split.cells', Inf)
+panderOptions('table.alignment.rownames', 'left')
+panderOptions('table.style', 'multiline')
+panderOptions('table.emphasize.rownames', FALSE)
+all <- read.csv("~/Documents/BoulderHousingPartnersData/DATA_csv/all.csv")
+
+
+all$Q36_1 <- ordered(all$Q36_1,
+                levels = c("Urgent situation, currently in crisis", "Vulnerable, need support to move forward", "Safe, family is making progress towards stability", "Stable, family is stable, safe and moving towards thriving", "Thriving, family is self-sufficient and thriving"),
+                labels = c("Urgent situation, currently in crisis", "Vulnerable, need support to move forward", "Safe, family is making progress towards stability", "Stable, family is stable, safe and moving towards thriving", "Thriving, family is self-sufficient and thriving"))
+
+all$Q36_2 <- ordered(all$Q36_2,
+                levels = c("Urgent situation, currently in crisis", "Vulnerable, need support to move forward", "Safe, family is making progress towards stability", "Stable, family is stable, safe and moving towards thriving", "Thriving, family is self-sufficient and thriving"),
+                labels = c("Urgent situation, currently in crisis", "Vulnerable, need support to move forward", "Safe, family is making progress towards stability", "Stable, family is stable, safe and moving towards thriving", "Thriving, family is self-sufficient and thriving"))
+
+all$Q36_3 <- ordered(all$Q36_3,
+                levels = c("Urgent situation, currently in crisis", "Vulnerable, need support to move forward", "Safe, family is making progress towards stability", "Stable, family is stable, safe and moving towards thriving", "Thriving, family is self-sufficient and thriving"),
+                labels = c("Urgent situation, currently in crisis", "Vulnerable, need support to move forward", "Safe, family is making progress towards stability", "Stable, family is stable, safe and moving towards thriving", "Thriving, family is self-sufficient and thriving"))
+
+all$Q36_4 <- ordered(all$Q36_4,
+                levels = c("Urgent situation, currently in crisis", "Vulnerable, need support to move forward", "Safe, family is making progress towards stability", "Stable, family is stable, safe and moving towards thriving", "Thriving, family is self-sufficient and thriving"),
+                labels = c("Urgent situation, currently in crisis", "Vulnerable, need support to move forward", "Safe, family is making progress towards stability", "Stable, family is stable, safe and moving towards thriving", "Thriving, family is self-sufficient and thriving"))
+
+all$Q36_5 <- ordered(all$Q36_5,
+                levels = c("Urgent situation, currently in crisis", "Vulnerable, need support to move forward", "Safe, family is making progress towards stability", "Stable, family is stable, safe and moving towards thriving", "Thriving, family is self-sufficient and thriving"),
+                labels = c("Urgent situation, currently in crisis", "Vulnerable, need support to move forward", "Safe, family is making progress towards stability", "Stable, family is stable, safe and moving towards thriving", "Thriving, family is self-sufficient and thriving"))
+
+all$Q36_6 <- ordered(all$Q36_6,
+                levels = c("Urgent situation, currently in crisis", "Vulnerable, need support to move forward", "Safe, family is making progress towards stability", "Stable, family is stable, safe and moving towards thriving", "Thriving, family is self-sufficient and thriving"),
+                labels = c("Urgent situation, currently in crisis", "Vulnerable, need support to move forward", "Safe, family is making progress towards stability", "Stable, family is stable, safe and moving towards thriving", "Thriving, family is self-sufficient and thriving"))
+
+all$Q36_7 <- ordered(all$Q36_7,
+                levels = c("Urgent situation, currently in crisis", "Vulnerable, need support to move forward", "Safe, family is making progress towards stability", "Stable, family is stable, safe and moving towards thriving", "Thriving, family is self-sufficient and thriving"),
+                labels = c("Urgent situation, currently in crisis", "Vulnerable, need support to move forward", "Safe, family is making progress towards stability", "Stable, family is stable, safe and moving towards thriving", "Thriving, family is self-sufficient and thriving"))
+
+all$Q36_8 <- ordered(all$Q36_8,
+                levels = c("Urgent situation, currently in crisis", "Vulnerable, need support to move forward", "Safe, family is making progress towards stability", "Stable, family is stable, safe and moving towards thriving", "Thriving, family is self-sufficient and thriving"),
+                labels = c("Urgent situation, currently in crisis", "Vulnerable, need support to move forward", "Safe, family is making progress towards stability", "Stable, family is stable, safe and moving towards thriving", "Thriving, family is self-sufficient and thriving"))
+
+all$Q36_9 <- ordered(all$Q36_9,
+                levels = c("Urgent situation, currently in crisis", "Vulnerable, need support to move forward", "Safe, family is making progress towards stability", "Stable, family is stable, safe and moving towards thriving", "Thriving, family is self-sufficient and thriving"),
+                labels = c("Urgent situation, currently in crisis", "Vulnerable, need support to move forward", "Safe, family is making progress towards stability", "Stable, family is stable, safe and moving towards thriving", "Thriving, family is self-sufficient and thriving"))
+
+all$Q36_10 <- ordered(all$Q36_10,
+                levels = c("Urgent situation, currently in crisis", "Vulnerable, need support to move forward", "Safe, family is making progress towards stability", "Stable, family is stable, safe and moving towards thriving", "Thriving, family is self-sufficient and thriving"),
+                labels = c("Urgent situation, currently in crisis", "Vulnerable, need support to move forward", "Safe, family is making progress towards stability", "Stable, family is stable, safe and moving towards thriving", "Thriving, family is self-sufficient and thriving"))
+
+all$Q36_11 <- ordered(all$Q36_11,
+                levels = c("Urgent situation, currently in crisis", "Vulnerable, need support to move forward", "Safe, family is making progress towards stability", "Stable, family is stable, safe and moving towards thriving", "Thriving, family is self-sufficient and thriving"),
+                labels = c("Urgent situation, currently in crisis", "Vulnerable, need support to move forward", "Safe, family is making progress towards stability", "Stable, family is stable, safe and moving towards thriving", "Thriving, family is self-sufficient and thriving"))
+
+all$Q1 <- ordered(all$Q1,
+                levels = c("Owned my home", "Market rental", "Subsidized housing", "With family/friends", "Was homeless"),
+                labels = c("Owned my home", "Market rental", "Subsidized housing", "With family/friends", "Was homeless"))
+
+all$Q10_8 <- ordered(all$Q10_8,
+                levels = c("Very Easy", "Somewhat Easy", "Neutral", "Somewhat Difficult", "Very Difficult"),
+                labels = c("Very Easy", "Somewhat Easy", "Neutral", "Somewhat Difficult", "Very Difficult"))
+
+all$Q32 <- ordered(all$Q32,
+                levels = c("Did not graduate from high school", "High school diploma or GED", "Some college", "Undergraduate degree (Bachelor’s/Associate’s)", "Graduate degree (Master’s/Ph.D.)"),
+                labels = c("Did not graduate from high school", "High school diploma or GED", "Some college", "Undergraduate degree (Bachelor’s/Associate’s)", "Graduate degree (Master’s/Ph.D.)"))
+
+#### Move In date YY-MM-DD
+all$Move.In <- as.character(all$Move.In)
+for(i in 1:length(all$Move.In)) if(as.numeric(substr(all$Move.In[i], 1, 2))<88 & !is.na(all$Move.In[i])) all$Move.In1[i] <- paste('20', all$Move.In[i], sep="") else all$Move.In1[i] <-""
+for(i in 1:length(all$Move.In)) if(as.numeric(substr(all$Move.In[i], 1, 2))>=88 & !is.na(all$Move.In[i])) all$Move.In1[i] <- paste('19', all$Move.In[i], sep="") 
+for(i in 1:length(all$Move.In)) if(is.na(all$Move.In[i])) all$Move.In1[i] <- NA
+all$Move.In1
+
+all$Move.Out <- as.character(all$Move.Out)
+for(i in 1:length(all$Move.Out)) if(as.numeric(substr(all$Move.Out[i], 1, 2))<88 & !is.na(all$Move.Out[i])) all$Move.Out1[i] <- paste('20', all$Move.Out[i], sep="") else all$Move.Out1[i] <-""
+for(i in 1:length(all$Move.Out)) if(as.numeric(substr(all$Move.Out[i], 1, 2))>=88 & !is.na(all$Move.Out[i])) all$Move.Out1[i] <- paste('19', all$Move.Out[i], sep="") 
+for(i in 1:length(all$Move.Out)) if(is.na(all$Move.Out[i])) all$Move.Out1[i] <- NA
+all$Move.Out1
+all$Move.Out1 <-as.Date(all$Move.Out1)
+all$Move.Out1
+
+
+all$Move.In2<-as.Date(all$Move.In1, origin ="1970-01-01")
+as.Date(Sys.Date(), origin = "1970-01-01")
+for(i in 1:length(all$Move.Out)) if(is.na(all$Move.Out1[i])) all$Move.Out2[i] <- as.Date(Sys.Date(), origin = "1970-01-01") else all$Move.Out2[i] <- all$Move.Out1[i]
+all$Move.Out2
+all$Move.Out2<-as.Date(all$Move.Out2, origin ="1970-01-01")
+
+all$Move.In2
+all$days<-all$Move.Out2 - all$Move.In2
+all$months.in.BHP<-round(all$day/30, 1)
+all$months.in.BHP<-as.double(all$months.in.BHP)
+
+all$Q6 <- ordered(all$Q6, levels = c("Definitely not", "Probably not", "Not sure", "Probably yes", "Definitely yes"), labels = c("Definitely not", "Probably not", "Not sure", "Probably yes", "Definitely yes"))
+all$Q7 <- ordered(all$Q7, levels = c("My skills definitely qualify me for a better paying job.", "My skills somehow qualify me for a better paying job at all.", "Neutral", "My skills somehow does not qualify me for a better paying job.", "My skills do not qualify me for a better paying job at all."), labels = c("Definitely yes", "Probably yes", "Neutral", "Probably not", "Definitely not"))
+all$Q10_1 <- ordered(all$Q10_1, levels = c("Very Easy", "Somewhat Easy", "Neutral", "Somewhat Difficult", "Very Difficult"), labels = c("Very Easy", "Somewhat Easy", "Neutral", "Somewhat Difficult", "Very Difficult"))
+all$Q10_4 <- ordered(all$Q10_4, levels = c("Very Easy", "Somewhat Easy", "Neutral", "Somewhat Difficult", "Very Difficult"), labels = c("Very Easy", "Somewhat Easy", "Neutral", "Somewhat Difficult", "Very Difficult"))
+all$Q10_7 <- ordered(all$Q10_7, levels = c("Very Easy", "Somewhat Easy", "Neutral", "Somewhat Difficult", "Very Difficult"), labels = c("Very Easy", "Somewhat Easy", "Neutral", "Somewhat Difficult", "Very Difficult"))
+all$Q10_8 <- ordered(all$Q10_8, levels = c("Very Easy", "Somewhat Easy", "Neutral", "Somewhat Difficult", "Very Difficult"), labels = c("Very Easy", "Somewhat Easy", "Neutral", "Somewhat Difficult", "Very Difficult"))
+all$Q16_3 <- ordered(all$Q16_3, levels = c("Very satisfied", "Somewhat satisfied", "Neutral", "Somewhat dissatisfied", "Very dissatisfied"), labels = c("Very satisfied", "Somewhat satisfied", "Neutral", "Somewhat dissatisfied", "Very dissatisfied"))
+all$Q16_6 <- ordered(all$Q16_6, levels = c("Very satisfied", "Somewhat satisfied", "Neutral", "Somewhat dissatisfied", "Very dissatisfied"), labels = c("Very satisfied", "Somewhat satisfied", "Neutral", "Somewhat dissatisfied", "Very dissatisfied"))
+all$Q28 <- ordered(all$Q28, levels = c("All the members of our household are covered by adequate health insurance coverage.", "All the members of our household have health insurance coverage, but the coverage is not adequate.", "Some of the members of our household do not have health insurance coverage.", "Most of the members of our household do not have health insurance coverage.", "None of the members in our household has health insurance coverage."), labels = c("All the members of our household are covered by adequate health insurance coverage.", "All the members of our household have health insurance coverage, but the coverage is not adequate.", "Some of the members of our household do not have health insurance coverage.", "Most of the members of our household do not have health insurance coverage.", "None of the members in our household has health insurance coverage."))
+all$Q33 <- ordered(all$Q33, levels = c("Yes, I got it more than a year ago", "Yes, I got it during the last year", "No, but I am planning to get it", "No, I am not planning to get it", "No, I am not sure if I need it"), labels = c("Yes, I got it more than a year ago", "Yes, I got it during the last year", "No, but I am planning to get it", "No, I am not planning to get it", "No, I am not sure if I need it"))
+
+summary(s8$Q2a)
+all$Q2a<-as.character(all$Q2)
+for(i in 1:length(all$Q2)) if(!is.na(all$Q2[i]) & all$Q2[i]=="For the next 6 months") all$Q2a[i]<-"Upto and including 2 years"
+for(i in 1:length(all$Q2)) if(!is.na(all$Q2[i]) & all$Q2[i]=="For the next 7 – 12 months") all$Q2a[i]<-"Upto and including 2 years"
+for(i in 1:length(all$Q2)) if(!is.na(all$Q2[i]) & all$Q2[i]=="For the next 1 – 2 years") all$Q2a[i]<-"Upto and including 2 years"
+
+all$Q2a<-ordered(all$Q2a, levels = c("Upto and including 2 years", "For the next 3 – 5 years", "For more than 5 years"), labels = c("Upto and including 2 years", "For the next 3 – 5 years", "For more than 5 years"))
+
+summary(all$Q4a)
+all$Q4a<-as.character(all$Q4)
+for(i in 1:length(all$Q4)) if(!is.na(all$Q4[i]) & all$Q4[i]=="Yes, 1 time") all$Q4a[i]<-"Yes"
+for(i in 1:length(all$Q4)) if(!is.na(all$Q4[i]) & all$Q4[i]=="Yes, 2 times") all$Q4a[i]<-"Yes"
+for(i in 1:length(all$Q4)) if(!is.na(all$Q4[i]) & all$Q4[i]=="Yes, 3 times") all$Q4a[i]<-"Yes"
+for(i in 1:length(all$Q4)) if(!is.na(all$Q4[i]) & all$Q4[i]=="Yes, 4 or more times") all$Q4a[i]<-"Yes"
+
+
+all$Q4a<-ordered(all$Q4a, levels = c("No, never", "Yes"), labels = c("No, never", "Yes"))
+
+save(all, file="all.RData")
+
+
+ph<-all[all$PH_or_S8=="PH", ]
+s8<-all[all$PH_or_S8=="S8", ]
+
+
+#############################################################################################
+load("all.RData")
+
+y<-subset(s8, Mailing.Zip==80304 | Mailing.Zip==80501 | Mailing.Zip==80301 | Mailing.Zip==80503 | Mailing.Zip==80303 | Mailing.Zip==80026)
+summary(y$Mailing.Zip)
+pander(xtabs(formula = ~ y$Mailing.Zip + y$Movedout, data=y))
+pander(round(prop.table(xtabs(formula = ~ s8$Q36_1 + s8$Movedout, data=s8), 2)*100), digit=0)
+pander(round(prop.table(xtabs(formula = ~ s8$Q36_2 + s8$Movedout, data=s8), 2)*100), digit=0)
+pander(round(prop.table(xtabs(formula = ~ s8$Q36_3 + s8$Movedout, data=s8), 2)*100), digit=0)
+pander(round(prop.table(xtabs(formula = ~ s8$Q36_4 + s8$Movedout, data=s8), 2)*100), digit=0)
+pander(round(prop.table(xtabs(formula = ~ s8$Q36_5 + s8$Movedout, data=s8), 2)*100), digit=0)
+pander(round(prop.table(xtabs(formula = ~ s8$Q36_6 + s8$Movedout, data=s8), 2)*100), digit=0)
+pander(round(prop.table(xtabs(formula = ~ s8$Q36_7 + s8$Movedout, data=s8), 2)*100), digit=0)
+pander(round(prop.table(xtabs(formula = ~ s8$Q36_8 + s8$Movedout, data=s8), 2)*100), digit=0)
+pander(round(prop.table(xtabs(formula = ~ s8$Q36_9 + s8$Movedout, data=s8), 2)*100), digit=0)
+pander(round(prop.table(xtabs(formula = ~ s8$Q36_10 + s8$Movedout, data=s8), 2)*100), digit=0)
+pander(round(prop.table(xtabs(formula = ~ s8$Q36_11 + s8$Movedout, data=s8), 2)*100), digit=0)
+
+
+pander(xtabs(formula = ~ s8$Q1 + s8$Movedout, data=s8))
+pander(xtabs(formula = ~ s8$Q10_8 + s8$Movedout, data=s8))
+pander(xtabs(formula = ~ s8$Q32 + s8$Movedout, data=s8))
+pander(xtabs(formula = ~ s8$Q33 + s8$Movedout, data=s8))
+pander(xtabs(formula = ~ s8$Q34 + s8$Movedout, data=s8))
+xtabs(formula = ~ s8$Q34 + s8$Movedout, data=s8)
+
+
+pander(xtabs(formula = ~ s8$Q34 + s8$Movedout, data=s8))
+
+
+
+################################################
+all <- subset(all, all$months.in.BHP>0)
+
+s8<-subset(all, PH_or_S8=="S8")
+ph<-subset(all, PH_or_S8=="PH")
+
+ggplot(all, aes(Movedout, months.in.BHP)) + geom_boxplot() + facet_wrap(~PH_or_S8) + 
+   theme(
+    strip.text.x = element_text(size = 20, colour = "brown", angle = 0),
+    plot.title = element_text(size=20, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=18, angle = 0, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=18), 
+    axis.title.x = element_text(color="#000033", size=18), 
+    axis.title.y = element_text(color="#000033", size=18, vjust=2),
+    legend.title=element_blank(),
+    legend.text = element_text(colour="#000033", size = 18)
+    )
+
+phnotmoved <- subset(all, PH_or_S8=="PH" & Movedout=="No")
+phmoved <- subset(all, PH_or_S8=="PH" & Movedout=="Yes")
+s8notmoved <- subset(all, PH_or_S8=="S8" & Movedout=="No")
+s8moved <- subset(all, PH_or_S8=="S8" & Movedout=="Yes")
+
+median(phnotmoved$months.in.BHP)
+median(phmoved$months.in.BHP)
+median(s8notmoved$months.in.BHP)
+median(s8moved$months.in.BHP)
+
+length(phnotmoved$months.in.BHP)
+length(phmoved$months.in.BHP)
+length(s8notmoved$months.in.BHP)
+length(s8moved$months.in.BHP)
+
+ggplot(all, aes(Age, months.in.BHP)) + geom_point(aes(color=PH_or_S8), alpha=1)
+
+summary(all$Member.Citizen)
+ggplot(all, aes(Member.Citizen, months.in.BHP)) + geom_boxplot() + facet_wrap(~PH_or_S8) +
+   theme(
+    strip.text.x = element_text(size = 20, colour = "brown", angle = 0),
+    plot.title = element_text(size=20, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=18, angle = 0, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=18), 
+    axis.title.x = element_text(color="#000033", size=18), 
+    axis.title.y = element_text(color="#000033", size=18, vjust=2),
+    legend.title=element_blank(),
+    legend.text = element_text(colour="#000033", size = 18) )
+
+IN <- subset(all, Member.Citizen=="IN")
+EN <- subset(all, Member.Citizen=="EN")
+EC <- subset(all, Member.Citizen=="EC")
+
+median(IN$months.in.BHP)
+median(EN$months.in.BHP)
+median(EC$months.in.BHP)
+
+PH_IN <- subset(all, Member.Citizen=="IN" & PH_or_S8=="PH")
+PH_EN <- subset(all, Member.Citizen=="EN" & PH_or_S8=="PH")
+PH_EC <- subset(all, Member.Citizen=="EC" & PH_or_S8=="PH")
+S8_IN <- subset(all, Member.Citizen=="IN" & PH_or_S8=="S8")
+S8_EN <- subset(all, Member.Citizen=="EN" & PH_or_S8=="S8")
+S8_EC <- subset(all, Member.Citizen=="EC" & PH_or_S8=="S8")
+
+median(PH_IN$months.in.BHP)
+median(PH_EN$months.in.BHP)
+median(PH_EC$months.in.BHP)
+median(S8_IN$months.in.BHP)
+median(S8_EN$months.in.BHP)
+median(S8_EC$months.in.BHP)
+
+xtabs(formula = ~  Member.Citizen + Movedout, data=all)
+
+summary(all$Member.Ethnicity)
+all$Member.Ethnicity <- as.factor(as.character(all$Member.Ethnicity))
+ggplot(all, aes(Member.Ethnicity, months.in.BHP)) + geom_boxplot() + facet_wrap(~PH_or_S8) + 
+   theme(
+    strip.text.x = element_text(size = 20, colour = "brown", angle = 0),
+    plot.title = element_text(size=20, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=18, angle = 0, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=18), 
+    axis.title.x = element_text(color="#000033", size=18), 
+    axis.title.y = element_text(color="#000033", size=18, vjust=2),
+    legend.title=element_blank(),
+    legend.text = element_text(colour="#000033", size = 18) )
+
+ph_1<-subset(all, PH_or_S8=="PH" & Member.Ethnicity=="1")
+ph_2<-subset(all, PH_or_S8=="PH" & Member.Ethnicity=="2")
+s8_1<-subset(all, PH_or_S8=="S8" & Member.Ethnicity=="1")
+s8_2<-subset(all, PH_or_S8=="S8" & Member.Ethnicity=="2")
+
+median(ph_1$months.in.BHP)
+median(ph_2$months.in.BHP)
+median(s8_1$months.in.BHP)
+median(s8_2$months.in.BHP)
+
+ggplot(all, aes(Q3_2, months.in.BHP)) + geom_boxplot() + facet_wrap(~PH_or_S8) + 
+   theme(
+    strip.text.x = element_text(size = 20, colour = "brown", angle = 0),
+    plot.title = element_text(size=20, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=18, angle = 45, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=18), 
+    axis.title.x = element_text(color="#000033", size=18), 
+    axis.title.y = element_text(color="#000033", size=18, vjust=2),
+    legend.title=element_blank(),
+    legend.text = element_text(colour="#000033", size = 18) )
+
+
+xtabs(formula = ~  Member.Ethnicity + PH_or_S8, data=all)
+
+# all$Move.In.Year <- as.factor(substr(as.character(all$Move.In), 1, 2))
+# all$Move.In.Year <- ordered(all$Move.In.Year, 
+                            levels = c("88", "89", "94", "98", "99", "00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15"),
+                            labels = c("88", "89", "94", "98", "99", "00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15"))
+# s8<-all[all$PH_or_S8=="S8", ]
+# summary(s8$Move.In.Year)
+
+# We add a new variable "lengthofstay" to s8 data frame that takes two values:
+#    - "short" Those that moved into S8 housing in/after 2010 that have already moved out (N=34);
+#    - "long" Those that moved into S8 housing before 2010 and have not yet moved out (N=48). 
+
+s8$lengthofstay<-NA
+for(i in 1:length(s8$Move.In.Year))
+  if(10<=as.numeric(s8$Move.In.Year[i])& s8$Movedout[i]=="Yes") s8$lengthofstay[i]<-"short stay"
+for(i in 1:length(s8$Move.In.Year))
+  if((0<=as.numeric(s8$Move.In.Year[i]) & as.numeric(s8$Move.In.Year[i])< 10) | (20 <= as.numeric(s8$Move.In.Year[i]) & as.numeric(s8$Move.In.Year[i])<= 99 & s8$Movedout[i]=="No" & !is.na(s8$Move.In.Year[i]))) s8$lengthofstay[i]<-"long stay"
+s8$lengthofstay<-as.factor(s8$lengthofstay)
+summary(s8$lengthofstay)
+ggplot(s8, aes(s8$lengthofstay, s8$Age)) + geom_boxplot()
+ggplot(s8, aes(s8$lengthofstay, s8$Total.Annual.Income)) + geom_boxplot()
+
+all$Move.In.Month <- as.factor(substr(as.character(all$Move.In), 4, 5))
+
+
+all$In.Date <- as.Date(all$Move.In)
+str(all$In.Date)
+summary(all$In.Date)
+
+(xtabs(formula = ~ s8$Move.In.Year + s8$Movedout, data=s8))
+xtabs(formula = ~  Member.Ethnicity + Q38, data=all)
+
+
+
+dir.create(file.path(tempdir(),"R2HTML"))
+target <- HTMLInitFile(file.path(tempdir(),"R2HTML"),filename="sample", BackGroundColor="white")
+tmp <- (xtabs(formula = ~  Member.Citizen + PH_or_S8, data=all))
+HTML(tmp,file=target)
+HTMLEndFile()
+```
+
+
+```{r}
+ph<-all[all$PH_or_S8=="PH", ]
+s8<-all[all$PH_or_S8=="S8", ]
+
+xtabs(formula = ~ location + Movedout, data=subset(ph, !is.na(location)))
+
+xtabs(formula = ~ Q1 + Movedout, data=ph)
+xtabs(formula = ~ Q1 + Movedout, data=s8)
+
+xtabs(formula = ~ Q2 + Movedout, data=ph)
+xtabs(formula = ~ Q2 + Movedout, data=s8)
+
+xtabs(formula = ~ Q3_1 + Movedout, data=ph)
+xtabs(formula = ~ Q3_1 + Movedout, data=s8)
+
+xtabs(formula = ~ Q3_2 + Movedout, data=ph)
+xtabs(formula = ~ Q3_2 + Movedout, data=s8)
+
+xtabs(formula = ~ Q3_9 + Movedout, data=ph)
+xtabs(formula = ~ Q3_9 + Movedout, data=s8)
+
+xtabs(formula = ~ Q4 + Movedout, data=ph)
+xtabs(formula = ~ Q4 + Movedout, data=s8)
+
+xtabs(formula = ~ Q5 + Movedout, data=ph)
+xtabs(formula = ~ Q5 + Movedout, data=s8)
+
+all$Q6 <- ordered(all$Q6, levels = c("Definitely not", "Probably not", "Not sure", "Probably yes", "Definitely yes"), labels = c("Definitely not", "Probably not", "Not sure", "Probably yes", "Definitely yes"))
+ph<-all[all$PH_or_S8=="PH", ]
+s8<-all[all$PH_or_S8=="S8", ]
+xtabs(formula = ~ Q6 + Movedout, data=ph)
+xtabs(formula = ~ Q6 + Movedout, data=s8)
+
+all$Q7 <- ordered(all$Q7, levels = c("My skills definitely qualify me for a better paying job.", "My skills somehow qualify me for a better paying job at all.", "Neutral", "My skills somehow does not qualify me for a better paying job.", "My skills do not qualify me for a better paying job at all."), labels = c("Definitely yes", "Probably yes", "Neutral", "Probably not", "Definitely not"))
+ph<-all[all$PH_or_S8=="PH", ]
+s8<-all[all$PH_or_S8=="S8", ]
+xtabs(formula = ~ Q7 + Movedout, data=ph)
+xtabs(formula = ~ Q7 + Movedout, data=s8)
+
+xtabs(formula = ~ Q9 + Movedout, data=ph)
+xtabs(formula = ~ Q9 + Movedout, data=s8)
+
+all$Q10_1 <- ordered(all$Q10_1, levels = c("Very Easy", "Somewhat Easy", "Neutral", "Somewhat Difficult", "Very Difficult"), labels = c("Very Easy", "Somewhat Easy", "Neutral", "Somewhat Difficult", "Very Difficult"))
+ph<-all[all$PH_or_S8=="PH", ]
+s8<-all[all$PH_or_S8=="S8", ]
+xtabs(formula = ~ Q10_1 + Movedout, data=ph)
+xtabs(formula = ~ Q10_1 + Movedout, data=s8)
+
+all$Q10_4 <- ordered(all$Q10_4, levels = c("Very Easy", "Somewhat Easy", "Neutral", "Somewhat Difficult", "Very Difficult"), labels = c("Very Easy", "Somewhat Easy", "Neutral", "Somewhat Difficult", "Very Difficult"))
+ph<-all[all$PH_or_S8=="PH", ]
+s8<-all[all$PH_or_S8=="S8", ]
+xtabs(formula = ~ Q10_4 + Movedout, data=ph)
+xtabs(formula = ~ Q10_4 + Movedout, data=s8)
+
+all$Q10_7 <- ordered(all$Q10_7, levels = c("Very Easy", "Somewhat Easy", "Neutral", "Somewhat Difficult", "Very Difficult"), labels = c("Very Easy", "Somewhat Easy", "Neutral", "Somewhat Difficult", "Very Difficult"))
+ph<-all[all$PH_or_S8=="PH", ]
+s8<-all[all$PH_or_S8=="S8", ]
+xtabs(formula = ~ Q10_7 + Movedout, data=ph)
+xtabs(formula = ~ Q10_7 + Movedout, data=s8)
+
+all$Q10_8 <- ordered(all$Q10_8, levels = c("Very Easy", "Somewhat Easy", "Neutral", "Somewhat Difficult", "Very Difficult"), labels = c("Very Easy", "Somewhat Easy", "Neutral", "Somewhat Difficult", "Very Difficult"))
+ph<-all[all$PH_or_S8=="PH", ]
+s8<-all[all$PH_or_S8=="S8", ]
+xtabs(formula = ~ Q10_8 + Movedout, data=ph)
+xtabs(formula = ~ Q10_8 + Movedout, data=s8)
+
+xtabs(formula = ~ Q14 + Movedout, data=ph)
+xtabs(formula = ~ Q14 + Movedout, data=s8)
+
+xtabs(formula = ~ Q15_1 + Movedout, data=ph)
+xtabs(formula = ~ Q15_1 + Movedout, data=s8)
+
+all$Q16_3 <- ordered(all$Q16_3, levels = c("Very satisfied", "Somewhat satisfied", "Neutral", "Somewhat dissatisfied", "Very dissatisfied"), labels = c("Very satisfied", "Somewhat satisfied", "Neutral", "Somewhat dissatisfied", "Very dissatisfied"))
+ph<-all[all$PH_or_S8=="PH", ]
+s8<-all[all$PH_or_S8=="S8", ]
+xtabs(formula = ~ Q16_3 + Movedout, data=ph)
+xtabs(formula = ~ Q16_3 + Movedout, data=s8)
+
+all$Q16_6 <- ordered(all$Q16_6, levels = c("Very satisfied", "Somewhat satisfied", "Neutral", "Somewhat dissatisfied", "Very dissatisfied"), labels = c("Very satisfied", "Somewhat satisfied", "Neutral", "Somewhat dissatisfied", "Very dissatisfied"))
+ph<-all[all$PH_or_S8=="PH", ]
+s8<-all[all$PH_or_S8=="S8", ]
+xtabs(formula = ~ Q16_6 + Movedout, data=ph)
+xtabs(formula = ~ Q16_6 + Movedout, data=s8)
+
+xtabs(formula = ~ Q18_2 + Movedout, data=ph)
+xtabs(formula = ~ Q18_2 + Movedout, data=s8)
+
+xtabs(formula = ~ Q18_6 + Movedout, data=ph)
+xtabs(formula = ~ Q18_6 + Movedout, data=s8)
+
+xtabs(formula = ~ Q19 + Movedout, data=ph)
+xtabs(formula = ~ Q19 + Movedout, data=s8)
+
+xtabs(formula = ~ Q20 + Movedout, data=ph)
+xtabs(formula = ~ Q20 + Movedout, data=s8)
+
+xtabs(formula = ~ Q24_1 + Movedout, data=ph)
+xtabs(formula = ~ Q24_1 + Movedout, data=s8)
+
+all$Q28 <- ordered(all$Q28, levels = c("All the members of our household are covered by adequate health insurance coverage.", "All the members of our household have health insurance coverage, but the coverage is not adequate.", "Some of the members of our household do not have health insurance coverage.", "Most of the members of our household do not have health insurance coverage.", "None of the members in our household has health insurance coverage."), labels = c("All the members of our household are covered by adequate health insurance coverage.", "All the members of our household have health insurance coverage, but the coverage is not adequate.", "Some of the members of our household do not have health insurance coverage.", "Most of the members of our household do not have health insurance coverage.", "None of the members in our household has health insurance coverage."))
+ph<-all[all$PH_or_S8=="PH", ]
+s8<-all[all$PH_or_S8=="S8", ]
+xtabs(formula = ~ Q28 + Movedout, data=ph)
+xtabs(formula = ~ Q28 + Movedout, data=s8)
+
+xtabs(formula = ~ Q35_1 + Movedout, data=ph)
+xtabs(formula = ~ Q35_1 + Movedout, data=s8)
+
+ggplot(all, aes(Q19, months.in.BHP)) + geom_boxplot() + facet_wrap(~PH_or_S8) + 
+   theme(
+    strip.text.x = element_text(size = 20, colour = "brown", angle = 0),
+    plot.title = element_text(size=20, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=18, angle = 0, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=18), 
+    axis.title.x = element_text(color="#000033", size=18), 
+    axis.title.y = element_text(color="#000033", size=18, vjust=2),
+    legend.title=element_blank(),
+    legend.text = element_text(colour="#000033", size = 18)
+    )
+
+ph<-all[all$PH_or_S8=="PH", ]
+s8<-all[all$PH_or_S8=="S8", ]
+
+s8withKids <- subset(s8, Q19=="Yes")
+s8withoutKids <- subset(s8, Q19=="No")
+phwithKids <- subset(ph, Q19=="Yes")
+phwithoutKids <- subset(ph, Q19=="No")
+
+median(phwithoutKids@months.in.BHP)
+median(phwithKids@months.in.BHP)
+median(s8withoutKids@months.in.BHP)
+median(s8withKids@months.in.BHP)
+
+xtabs(formula = ~ Q5 + Q6, data=ph)
+xtabs(formula = ~ Q5 + Q6, data=s8)
+
+xtabs(formula = ~ Q32 + Q34, data=ph)
+xtabs(formula = ~ Q32 + Q34, data=s8)
+
+all$Q33 <- ordered(all$Q33, levels = c("Yes, I got it more than a year ago", "Yes, I got it during the last year", "No, but I am planning to get it", "No, I am not planning to get it", "No, I am not sure if I need it"), labels = c("Yes, I got it more than a year ago", "Yes, I got it during the last year", "No, but I am planning to get it", "No, I am not planning to get it", "No, I am not sure if I need it"))
+ph<-all[all$PH_or_S8=="PH", ]
+s8<-all[all$PH_or_S8=="S8", ]
+xtabs(formula = ~ Q33 + Q34, data=ph)
+xtabs(formula = ~ Q33 + Q34, data=s8)
+
+xtabs(formula = ~ Q5 + Q32, data=ph)
+xtabs(formula = ~ Q5 + Q32, data=s8)
+
+xtabs(formula = ~ Q5 + Q33, data=ph)
+xtabs(formula = ~ Q5 + Q33, data=s8)
+
+load("all.RData")
+
+ph<-all[all$PH_or_S8=="PH", ]
+s8<-all[all$PH_or_S8=="S8", ]
+xtabs(formula = ~ Q2a + Q4a, data=ph)
+xtabs(formula = ~ Q2a + Q4a, data=s8)
+round(prop.table(xtabs(formula = ~ Q2a + Q4a, data=ph), 1)*100, digit=0)
+round(prop.table(xtabs(formula = ~ Q2a + Q4a, data=s8), 1)*100, digit=0)
+
+xtabs(formula = ~ Q5 + Q4a, data=ph)
+xtabs(formula = ~ Q5 + Q4a, data=s8)
+x<-as.data.frame((xtabs(formula = ~ Q5 + Q2a, data=s8)))
+ggplot(x, aes(Q2a, Q5)) + geom_point(aes(size=Freq))
+
+xtabs(formula = ~ Q6 + Q4a, data=ph)
+xtabs(formula = ~ Q6 + Q4a, data=s8)
+
+xtabs(formula = ~ Q9 + Q4a, data=ph)
+xtabs(formula = ~ Q9 + Q4a, data=s8)
+
+ggplot(all, aes(Q4a, I(Family.Members/Bedrooms))) + geom_boxplot() + facet_wrap(~PH_or_S8) + 
+   theme(
+    strip.text.x = element_text(size = 20, colour = "brown", angle = 0),
+    plot.title = element_text(size=20, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=18, angle = 60, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=18), 
+    axis.title.x = element_text(color="#000033", size=18), 
+    axis.title.y = element_text(color="#000033", size=18, vjust=2),
+    legend.title=element_blank(),
+    legend.text = element_text(colour="#000033", size = 18)
+    )
+
+xmed<-ddply(all, .(Member.Sex, PH_or_S8), summarise, med=median(Total.Annual.Income))
+
+ggplot(all, aes(Member.Sex, Total.Annual.Income)) + geom_boxplot() + 
+  geom_text(data = xmed, aes(x = Member.Sex, y = med, label = med), size = 5, vjust = -0.6) + 
+  facet_wrap(~PH_or_S8) + 
+   theme(
+    strip.text.x = element_text(size = 20, colour = "brown", angle = 0),
+    plot.title = element_text(size=20, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=18, angle = 60, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=18), 
+    axis.title.x = element_text(color="#000033", size=18), 
+    axis.title.y = element_text(color="#000033", size=18, vjust=2),
+    legend.title=element_blank(),
+    legend.text = element_text(colour="#000033", size = 18)
+    ) 
+
+xtabs(formula = ~ Single.Parent.HH + Q4a, data=ph)
+xtabs(formula = ~ Single.Parent.HH + Q4a, data=s8)
+
+all<-subset(all, !is.na(Recd.))
+
+xmed<-ddply(all, .(Q4a, PH_or_S8), summarise, med=median(Age))
+
+ggplot(all, aes(Q4a, Age)) + geom_boxplot() + 
+  geom_text(data = xmed, aes(x = Q4a, y = med, label = med), size = 5, vjust = -0.6) + 
+  facet_wrap(~PH_or_S8) + 
+   theme(
+    strip.text.x = element_text(size = 20, colour = "brown", angle = 0),
+    plot.title = element_text(size=20, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=18, angle = 60, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=18), 
+    axis.title.x = element_text(color="#000033", size=18), 
+    axis.title.y = element_text(color="#000033", size=18, vjust=2),
+    legend.title=element_blank(),
+    legend.text = element_text(colour="#000033", size = 18)
+    ) 
+
+y<-subset(s8, Mailing.Zip==80304 | Mailing.Zip==80501 | Mailing.Zip==80301 | Mailing.Zip==80503 | Mailing.Zip==80303 | Mailing.Zip==80026)
+summary(y$Mailing.Zip)
+y$Mailing.Zip<-as.factor(y$Mailing.Zip)
+xmed<-ddply(y, .(Mailing.Zip), summarise, med=median(Total.Annual.Income))
+
+ggplot(y, aes(Mailing.Zip, Total.Annual.Income)) + geom_boxplot() + 
+  geom_text(data = xmed, aes(x = Mailing.Zip, y = med, label = med), size = 5, vjust = -0.6) + 
+   theme(
+    strip.text.x = element_text(size = 20, colour = "brown", angle = 0),
+    plot.title = element_text(size=20, face="bold", vjust=3, color="#000033"), 
+    axis.text.x = element_text(size=18, angle = 0, hjust = 1, color="#000033"), 
+    axis.text.y = element_text(size=18), 
+    axis.title.x = element_text(color="#000033", size=18), 
+    axis.title.y = element_text(color="#000033", size=18, vjust=2),
+    legend.title=element_blank(),
+    legend.text = element_text(colour="#000033", size = 18)
+    ) 
+
+xtabs(formula = ~ Member.Ethnicity + PH_or_S8, data=all)
+```
+
