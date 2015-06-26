@@ -1,4 +1,4 @@
-setwd("/home/anirban/Documents/BoulderHousingPartnersData")
+
 library("foreign")
 library("ggplot2")
 library("pander")
@@ -7,16 +7,20 @@ panderOptions('table.split.cells', Inf)
 panderOptions('table.alignment.rownames', 'left')
 panderOptions('table.style', 'multiline')
 panderOptions('table.emphasize.rownames', FALSE)
-ph <- read.spss('PH.sav', to.data.frame=TRUE) ## Import PH data from SPSS files.
-s8 <- read.spss('S8_NA_999.sav', to.data.frame=TRUE) ## Import S8 data from SPSS files.
+
+#### LOAD DATA ####
+
+ph <- read.spss('Data/PH.sav', to.data.frame=TRUE) ## Import PH data from SPSS files.
+s8 <- read.spss('Data/S8_NA_999.sav', to.data.frame=TRUE) ## Import S8 data from SPSS files.
+
+# Now load the additional data that BHP provided from their administrative database.
+phadditional <- read.csv("Data/BHP-Admin_records/ph.csv")
+s8additional <- read.csv("Data/BHP-Admin_records/s8.csv")  
+
+#### CLEANING THE DATA FILES ####
 s8$Surveyed <- "Yes"
 ph$Surveyed <- "Yes"
 
-# ph_loc <- read.csv("PH_Loc.csv") ## This is not needed any more. PH location site codes are already in phadditional file.
-phadditional <- read.csv("ph.csv")
-s8additional <- read.csv("s8.csv")
-# ph_loc <- ph_loc[1:67, 6:7]
-# names(ph_loc)[2] <- "location"
 names(phadditional)[1] <- "location"
 names(s8additional)[1] <- "location"
 names(phadditional)[2] <- "TCode"
@@ -25,11 +29,12 @@ s8$TCode<-tolower(s8$TCode)
 ph$TCode<-tolower(ph$TCode)
 
 
-### Some of the trouble TCodes are as follows: 
-# t0000151
-# a0000696
-# a0001948
-# t0001972
+### Some of the TCodes from "s8" and "ph" don't match exactly with those from "s8addition" and "phadditional" respectively. They are as follows: 
+# t0000151 - This exists in "ph" but not in "phadditional". But "phadditional" has a0000151. We therefore change the TCode in ph to one starting with "a".
+# a0000696 - This exists in "s8" but not in "s8additional". But "s8additional" has this TCode but starting with "t" instead of "a". We therefore change the TCode in s8 to one starting with "t".
+# a0001948 - This exists in "s8" but not in "s8additional". But "s8additional" has this TCode but starting with "t" instead of "a". We therefore change the TCode in s8 to one starting with "t".
+# t0001972 - This exists in "s8" but not in "s8additional". Also "s8additional" does not contain the TCode "a0001972". So this is the most problematic. We therefore leave this as it is.
+
 
 subset(s8, TCode=="a0000696")
 s8[243, 1] <- "t0000696"
@@ -46,7 +51,7 @@ subset(s8, TCode=="t0001972")
 subset(s8additional, TCode=="a0001972")
 s8[145, 1]
 
-# ph_loc$location <- as.factor(as.integer(ph_loc$location)) # Make "location" a categorical variable.
+
 
 
 ph$Q1 <- factor(ph$Q1,
@@ -60,7 +65,12 @@ s8$Q1 <- factor(s8$Q1,
 ph <- ph[1:85, ]      ## Rows beyond row 85 do not have any data. So we remove those rows.
 s8 <- s8[-35, ]       ## Row 35 does not have any data. So we remove that row.
 
+# Next we create a new variable PH_or_S8 for both the files. This will be helpful in identifying which household is S8 and which is PH after we have merged the two files. 
+ph$PH_or_S8 <- "PH"
+ph$PH_or_S8 <- as.factor(ph$PH_or_S8)
 
+s8$PH_or_S8 <- "S8"
+s8$PH_or_S8 <- as.factor(s8$PH_or_S8)
 
 ## There are duplicate TCode entries in the s8 data frame. We need to get rid of them.
 s8<-s8[-198, ]  
@@ -113,11 +123,19 @@ s8$PH_or_S8 <- "S8"
 
 
 # I notice that the file "s8" has Q11, Q17, Q19, Q20 coded differently than file "ph". So lets fix those.
+# Notice that the file "s8" has Q11, Q17, Q19, Q20 coded differently than file "ph". So lets fix those.
 summary(s8$Q11)
 s8$Q11 <- as.factor(as.integer(s8$Q11))
 s8$Q11 <- factor(s8$Q11,
                  levels = c(1, 2, 3, 4, 5, 999),
                  labels = c("No, never", "Rarely", "Sometimes", "Most of the time", "Yes, all of the time", NA))
+ph$Q11 <- ordered(ph$Q11,
+                  levels = c("No, never", "Rarely", "Sometimes", "Most of the time", "Yes, all of the time"),
+                  labels = c("No, never", "Rarely", "Sometimes", "Most of the time", "Yes, all of the time"))
+s8$Q11 <- ordered(s8$Q11,
+                  levels = c("No, never", "Rarely", "Sometimes", "Most of the time", "Yes, all of the time"),
+                  labels = c("No, never", "Rarely", "Sometimes", "Most of the time", "Yes, all of the time"))
+
 summary(s8$Q17)
 s8$Q17 <- as.factor(as.integer(s8$Q17))
 s8$Q17 <- factor(s8$Q17,
@@ -136,12 +154,17 @@ s8$Q20 <- factor(s8$Q20,
 
 
 ## In order to check if we have included all the observations from the Excel file in our analysis, lets try to see if there are observations in the Excel file that do not exist in the SPSS file for S8.
-# s8TCodesFromExcel <- read.csv("s8-listOfTCodes-fromExcel.csv")
-# summary(s8TCodesFromExcel)
+s8TCodesFromExcel <- read.csv("Data/s8-listOfTCodes-fromExcel.csv")
+summary(s8TCodesFromExcel)
 
-# s8_merged <- merge(s8, s8TCodesFromExcel, by = intersect(names(s8), names(s8TCodesFromExcel)), all=TRUE)
-# s8_merged$TCode <- as.factor(s8_merged$TCode)
-# summary(s8_merged$TCode)
+s8_merged <- merge(s8, s8TCodesFromExcel, by = intersect(names(s8), names(s8TCodesFromExcel)), all=TRUE)
+s8_merged$TCode <- as.factor(s8_merged$TCode)
+summary(s8_merged$TCode)
+
+# Check to see if the variables in S8 and PH are the same
+
+setdiff(names(s8), intersect(names(ph), names(s8)))
+setdiff(names(ph), intersect(names(ph), names(s8)))
 
 # Now lets create the merged file. PH survey sent = 131 (received 85); S8 surveys sent = 273 (received 257).
 
@@ -162,6 +185,7 @@ names(ph)[names(ph)=="Scanned"]<-"Scanned."
 names(ph)[names(ph)=="Sent.to.CU"]<-"Sent.to.CU."
 names(ph)[names(ph)=="Non.Students.Age.18."]<-"Non.Students.Ages.18."
 
+# Now lets create the merged file. PH survey sent = 131 (received 85); S8 surveys sent = 273 (received 257).
 all <- rbind(ph, s8)
 all$PH_or_S8<-as.factor(all$PH_or_S8)
 
