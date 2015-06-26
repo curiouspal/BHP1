@@ -1,10 +1,10 @@
-setwd("/media/anirban/a84ef5e0-59cf-454d-aeae-e112c9915900/home/anirban/Documents/BoulderHousingPartnersData")
+
 library("foreign")
 
 #### LOAD DATA ####
 
-ph <- read.spss('PH.sav', to.data.frame=TRUE) ## Import PH data from SPSS files.
-s8 <- read.spss('S8_NA_999.sav', to.data.frame=TRUE) ## Import S8 data from SPSS files.
+ph <- read.spss('/Data/PH.sav', to.data.frame=TRUE) ## Import PH data from SPSS files.
+s8 <- read.spss('/Data/S8_NA_999.sav', to.data.frame=TRUE) ## Import S8 data from SPSS files.
 
 # Now load the additional data that BHP provided from their administrative database.
 phadditional <- read.csv("ph.csv")
