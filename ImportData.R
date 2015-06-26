@@ -1,14 +1,14 @@
-
+setwd("/media/anirban/a84ef5e0-59cf-454d-aeae-e112c9915900/home/anirban/Documents/BoulderHousingPartnersData/BHP2-clone/BHP1")
 library("foreign")
 
 #### LOAD DATA ####
 
-ph <- read.spss('/Data/PH.sav', to.data.frame=TRUE) ## Import PH data from SPSS files.
-s8 <- read.spss('/Data/S8_NA_999.sav', to.data.frame=TRUE) ## Import S8 data from SPSS files.
+ph <- read.spss('Data/PH.sav', to.data.frame=TRUE) ## Import PH data from SPSS files.
+s8 <- read.spss('Data/S8_NA_999.sav', to.data.frame=TRUE) ## Import S8 data from SPSS files.
 
 # Now load the additional data that BHP provided from their administrative database.
-phadditional <- read.csv("/Data/BHP-Admin_records/ph.csv")
-s8additional <- read.csv("/Data/BHP-Admin_records/s8.csv")  
+phadditional <- read.csv("Data/BHP-Admin_records/ph.csv")
+s8additional <- read.csv("Data/BHP-Admin_records/s8.csv")  
 
 #### CLEANING THE DATA FILES ####
 names(phadditional)[1] <- "location"
