@@ -197,20 +197,6 @@ all$Non.Students.Ages.18.<-as.factor(all$Non.Students.Ages.18.)
 for(i in 1:length(all$Surveyed)) if(is.na(all$Surveyed[i])) all$Surveyed[i]<-"No"
 all$Surveyed<-as.factor(all$Surveyed)
 
-
-## There are 199 variables in this new data frame "all". I later created a few more variables during analysis which are in the .RData file: 
-# "Movedout"      
-# "Move.In1"      
-# "Move.Out1"     
-# "Move.In2"      
-# "Move.Out2"     
-# "days"          
-# "months.in.BHP" 
-# "Q2a" - This is just a recode of Q2.          
-# "Q4a" - This is just a recode of Q4 with anyone who paid rent late at least once are coded as "Yes".
-
-## Below I have the lines of code that would add some of the above 
-
 for(i in 1:length(all$Move.Out)) if(all$Move.Out[i]=="99-12-30") all$Move.Out[i]<-NA
 #for(i in 1:length(all$Move.In)) if(all$Move.In[i]=="99-12-30") all$Move.In[i]<-NA
 
