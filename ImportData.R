@@ -196,11 +196,9 @@ all$Student.Houshold.Members<-as.factor(all$Student.Houshold.Members)
 all$Non.Students.Ages.18.<-as.factor(all$Non.Students.Ages.18.)
 for(i in 1:length(all$Surveyed)) if(is.na(all$Surveyed[i])) all$Surveyed[i]<-"No"
 all$Surveyed<-as.factor(all$Surveyed)
-ph<-all[all$PH_or_S8=="PH", ]
-s8<-all[all$PH_or_S8=="S8", ]
+
 
 ## There are 199 variables in this new data frame "all". I later created a few more variables during analysis which are in the .RData file: 
-# "X"             
 # "Movedout"      
 # "Move.In1"      
 # "Move.Out1"     
@@ -211,6 +209,8 @@ s8<-all[all$PH_or_S8=="S8", ]
 # "Q2a" - This is just a recode of Q2.          
 # "Q4a" - This is just a recode of Q4 with anyone who paid rent late at least once are coded as "Yes".
 
+## Below I have the lines of code that would add some of the above 
+
 for(i in 1:length(all$Move.Out)) if(all$Move.Out[i]=="99-12-30") all$Move.Out[i]<-NA
 #for(i in 1:length(all$Move.In)) if(all$Move.In[i]=="99-12-30") all$Move.In[i]<-NA
 
@@ -220,3 +220,36 @@ for(i in 1:length(all$Move.Out))
   if(is.na(all$Move.Out[i])) all$Movedout[i]<-"No" else all$Movedout[i]<-"Yes"
 all$Movedout<-as.factor(all$Movedout)
 summary(all$Movedout)
+
+#### Move In date YY-MM-DD
+all$Move.In <- as.character(all$Move.In)
+for(i in 1:length(all$Move.In)) if(as.numeric(substr(all$Move.In[i], 1, 2))<88 & !is.na(all$Move.In[i])) all$Move.In1[i] <- paste('20', all$Move.In[i], sep="") else all$Move.In1[i] <-""
+for(i in 1:length(all$Move.In)) if(as.numeric(substr(all$Move.In[i], 1, 2))>=88 & !is.na(all$Move.In[i])) all$Move.In1[i] <- paste('19', all$Move.In[i], sep="") 
+for(i in 1:length(all$Move.In)) if(is.na(all$Move.In[i])) all$Move.In1[i] <- NA
+all$Move.In1
+
+all$Move.Out <- as.character(all$Move.Out)
+for(i in 1:length(all$Move.Out)) if(as.numeric(substr(all$Move.Out[i], 1, 2))<88 & !is.na(all$Move.Out[i])) all$Move.Out1[i] <- paste('20', all$Move.Out[i], sep="") else all$Move.Out1[i] <-""
+for(i in 1:length(all$Move.Out)) if(as.numeric(substr(all$Move.Out[i], 1, 2))>=88 & !is.na(all$Move.Out[i])) all$Move.Out1[i] <- paste('19', all$Move.Out[i], sep="") 
+for(i in 1:length(all$Move.Out)) if(is.na(all$Move.Out[i])) all$Move.Out1[i] <- NA
+all$Move.Out1
+all$Move.Out1 <-as.Date(all$Move.Out1)
+all$Move.Out1
+
+
+all$Move.In2<-as.Date(all$Move.In1, origin ="1970-01-01")
+as.Date(Sys.Date(), origin = "1970-01-01")
+for(i in 1:length(all$Move.Out)) if(is.na(all$Move.Out1[i])) all$Move.Out2[i] <- as.Date(Sys.Date(), origin = "1970-01-01") else all$Move.Out2[i] <- all$Move.Out1[i]
+all$Move.Out2
+all$Move.Out2<-as.Date(all$Move.Out2, origin ="1970-01-01")
+
+all$Move.In2
+all$days<-all$Move.Out2 - all$Move.In2
+all$months.in.BHP<-round(all$days/30, 1)
+all$months.in.BHP<-as.double(all$months.in.BHP)
+
+# Now split the data set "all" into "ph" and "s8".
+ph<-all[all$PH_or_S8=="PH", ]
+s8<-all[all$PH_or_S8=="S8", ]
+
+rm(ph, phadditional, s8, s8_merged, s8additional, s8TCodesFromExcel)
