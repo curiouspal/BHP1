@@ -2,7 +2,8 @@
 
 ## The variable Program has to be changed to PH_or_S8.
 
-ph2015 <- read.csv("/media/anirban/Ubuntu/Downloads/BHP-trial.csv")
+path <- "/media/anirban/Ubuntu/Downloads/BHP Survey 2015 - production (Responses) - Form Responses 1.csv"
+ph2015 <- read.csv(path, na.strings = "")
 
 for(i in 1:length(ph2015))
   if(names(ph2015)[i] == "Program") names(ph2015)[i] <- "PH_or_S8"
@@ -18,12 +19,22 @@ for(i in 1:length(ph2015))
   
 ### Now check if all the TCodes were correctly entered.
 for(i in 1:length(ph2015$TCode))
-  if(ph2015$TCode[i] == ph2015$TCode_verify[i]) ph2015$TCodeCorrect[i] <- 1 else ph2015$TCodeCorrect[i] <- 0
+  if(ph2015$TCode[i] == ph2015$TCode.1[i]) ph2015$TCodeCorrect[i] <- 1 else ph2015$TCodeCorrect[i] <- 0
+ph2015$TCodeCorrect <- as.factor(ph2015$TCodeCorrect)
 summary(ph2015$TCodeCorrect)  
+
+### Missing values need to be assigned correctly.
+for(i in 1:length(ph2015))
+  for(j in 1:length(ph2015$TCode))
+    if(is.na(ph2015[j, i]) | (ph2015[j, i])=='No response') ph2015[j, i]<-NA
+
 
 ### Add "-15" at the end of each variable name to denote that the data is from 2015 round of data collection.
 for(i in 3:length(ph2015))
   names(ph2015)[i]<-paste(names(ph2015)[i], "-15")
+
+    
+
 
 ## Now we can merge this file with the previous file "all" with TCode as the pivot.
 ph-all <- merge(all, ph2015, by = "TCode", all=TRUE)
